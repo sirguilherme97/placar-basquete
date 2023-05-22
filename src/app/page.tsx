@@ -210,7 +210,7 @@ export default function Home() {
                 onChange={handleTimer}
                 className="rounded-md placeholder:text-zinc-500 placeholder:text-lg pl-5 mt-2 w-full h-10 bg-zinc-800 font-bold text-2xl flex items-center justify-center"
               />
-              <p className='mt-10'>Pontos do Time A</p>
+              <p className='mt-2'>Pontos do Time A</p>
               <input
                 placeholder='Pontos do Time A'
                 type="number"
@@ -218,7 +218,7 @@ export default function Home() {
                 onChange={handlePontosA}
                 className="rounded-md placeholder:text-zinc-500 placeholder:text-lg pl-5 mt-2 w-full h-10 bg-zinc-800 font-bold text-2xl flex items-center justify-center"
               />
-              <p className='mt-10'>Pontos do Time B</p>
+              <p className='mt-2'>Pontos do Time B</p>
               <input
                 placeholder='Pontos do Time B'
                 type="number"

@@ -71,12 +71,9 @@ export default function Home() {
   }, [timeBName]);
 
   // Função para obter o valor de um cookie
-  const getCookie = (name: string | null) => {
-    if (name === null) {
-      return null;
-    }
+  const getCookie = (name: string) => {
     const cookieValue = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-    return cookieValue ? cookieValue[2] : null;
+    return cookieValue ? cookieValue[2] : '';
   };
 
   // Função para definir o valor de um cookie

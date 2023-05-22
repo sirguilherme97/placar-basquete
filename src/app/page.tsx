@@ -3,12 +3,12 @@ import { useEffect, useState } from 'react';
 import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
 export default function Home() {
-  const [seconds, setSeconds] = useState<any>(300);
-  const [isPaused, setIsPaused] = useState<any>(true); // Estado para controlar a pausa do timer
-  const [pontosA, setPontosA] = useState<any>(0)
-  const [pontosB, setPontosB] = useState<any>(0)
-  const [timeAName, setTimeAName] = useState<any>("Time A");
-  const [timeBName, setTimeBName] = useState<any>("Time B");
+  const [seconds, setSeconds] = useState(300);
+  const [isPaused, setIsPaused] = useState(true); // Estado para controlar a pausa do timer
+  const [pontosA, setPontosA] = useState(0)
+  const [pontosB, setPontosB] = useState(0)
+  const [timeAName, setTimeAName] = useState("Time A");
+  const [timeBName, setTimeBName] = useState("Time B");
 
 
   function somarTresA() {

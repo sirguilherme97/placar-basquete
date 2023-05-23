@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
+// import { GiWhistle } from "react-icons/gi";
+
 
 export default function Home() {
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
@@ -11,26 +13,33 @@ export default function Home() {
   const [timeAName, setTimeAName] = useState("Time A"); // Estado para armazenar o nome do Time A
   const [timeBName, setTimeBName] = useState("Time B"); // Estado para armazenar o nome do Time B
 
+
   // Funções para adicionar pontos ao Time A
   function somarTresA() {
     setPontosA(pontosA + 3);
+    setIsPaused(true);
   }
   function somarDoisA() {
     setPontosA(pontosA + 2);
+    setIsPaused(true);
   }
   function somarUmA() {
     setPontosA(pontosA + 1);
+    setIsPaused(true);
   }
 
   // Funções para adicionar pontos ao Time B
   function somarTresB() {
     setPontosB(pontosB + 3);
+    setIsPaused(true);
   }
   function somarDoisB() {
     setPontosB(pontosB + 2);
+    setIsPaused(true);
   }
   function somarUmB() {
     setPontosB(pontosB + 1);
+    setIsPaused(true);
   }
 
   // useEffect para carregar os valores salvos dos cookies ao carregar a página
@@ -39,6 +48,7 @@ export default function Home() {
     const savedPontosB = parseInt(getCookie('pontosB'));
     const savedTimeAName = getCookie('timeAName');
     const savedTimeBName = getCookie('timeBName');
+    const savedSeconds = parseInt(getCookie('seconds'));
 
     if (!isNaN(savedPontosA)) {
       setPontosA(savedPontosA);
@@ -55,6 +65,11 @@ export default function Home() {
     if (savedTimeBName) {
       setTimeBName(savedTimeBName);
     }
+
+    if (!isNaN(savedSeconds)) {
+      setSeconds(savedSeconds);
+    }
+
   }, []);
 
   // useEffect para salvar o valor dos pontos do Time A no cookie sempre que ele for alterado
@@ -76,6 +91,11 @@ export default function Home() {
   useEffect(() => {
     setCookie('timeBName', timeBName, 14);
   }, [timeBName]);
+
+  // useEffect para salvar o tempo em cookie sempre que ele for alterado
+  useEffect(() => {
+    setCookie('seconds', seconds.toString(), 14);
+  }, [seconds]);
 
   // Função para obter o valor de um cookie
   const getCookie = (name: string) => {
@@ -154,7 +174,7 @@ export default function Home() {
               type="text"
               value={timeAName}
               onChange={handleTimeANameChange}
-              className="pl-5 w-full h-10 bg-red-500 font-bold text-2xl flex items-center justify-center"
+              className="pl-5 w-full h-10 bg-red-500 font-bold text-xl flex items-center justify-center"
             />
           </div>
 
@@ -179,7 +199,7 @@ export default function Home() {
               type="text"
               value={timeBName}
               onChange={handleTimeBNameChange}
-              className="pl-5 w-full h-10 bg-blue-500 font-bold text-2xl flex items-center justify-center"
+              className="pl-5 w-full h-10 bg-blue-500 font-bold text-xl flex items-center justify-center"
             />
           </div>
 
@@ -231,6 +251,7 @@ export default function Home() {
         ) : (
           <div className='flex flex-col pt-10 items-center justify-center'>
             <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
+            {/* <GiWhistle size={120} /> */}
           </div>
         )}
       </div>

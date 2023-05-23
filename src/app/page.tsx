@@ -2,8 +2,7 @@
 import { useEffect, useState } from 'react';
 import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
-// import { GiWhistle } from "react-icons/gi";
-
+import { GiWhistle } from "react-icons/gi";
 
 export default function Home() {
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
@@ -13,7 +12,10 @@ export default function Home() {
   const [timeAName, setTimeAName] = useState("Time A"); // Estado para armazenar o nome do Time A
   const [timeBName, setTimeBName] = useState("Time B"); // Estado para armazenar o nome do Time B
 
-
+  function StartSound() {
+    new Audio("/apito.webm").play()
+    setIsPaused(true)
+  }
   // Funções para adicionar pontos ao Time A
   function somarTresA() {
     setPontosA(pontosA + 3);
@@ -251,7 +253,7 @@ export default function Home() {
         ) : (
           <div className='flex flex-col pt-10 items-center justify-center'>
             <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
-            {/* <GiWhistle size={120} /> */}
+            <GiWhistle onClick={StartSound} size={120} />
           </div>
         )}
       </div>

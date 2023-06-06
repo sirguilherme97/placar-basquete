@@ -7,8 +7,8 @@ import { GiWhistle } from "react-icons/gi";
 export default function Home() {
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
   const [isPaused, setIsPaused] = useState(true); // Estado para controlar a pausa do timer
-  const [pontosA, setPontosA] = useState(0); // Estado para armazenar os pontos do Time A
-  const [pontosB, setPontosB] = useState(0); // Estado para armazenar os pontos do Time B
+  const [pontosA, setPontosA] = useState<number>(0); // Estado para armazenar os pontos do Time A
+  const [pontosB, setPontosB] = useState<number>(0); // Estado para armazenar os pontos do Time B
   const [timeAName, setTimeAName] = useState("Time A"); // Estado para armazenar o nome do Time A
   const [timeBName, setTimeBName] = useState("Time B"); // Estado para armazenar o nome do Time B
 
@@ -18,29 +18,29 @@ export default function Home() {
   }
   // Funções para adicionar pontos ao Time A
   function somarTresA() {
-    setPontosA(pontosA + 3);
+    setPontosA(parseInt(+pontosA + 3));
     setIsPaused(true);
   }
   function somarDoisA() {
-    setPontosA(pontosA + 2);
+    setPontosA(parseInt(+pontosA + 2));
     setIsPaused(true);
   }
   function somarUmA() {
-    setPontosA(pontosA + 1);
+    setPontosA(parseInt(+pontosA + 1));
     setIsPaused(true);
   }
 
   // Funções para adicionar pontos ao Time B
   function somarTresB() {
-    setPontosB(pontosB + 3);
+    setPontosB(parseInt(+pontosB + 3));
     setIsPaused(true);
   }
   function somarDoisB() {
-    setPontosB(pontosB + 2);
+    setPontosB(parseInt(+pontosB + 2));
     setIsPaused(true);
   }
   function somarUmB() {
-    setPontosB(pontosB + 1);
+    setPontosB(parseInt(+pontosB + 1));
     setIsPaused(true);
   }
 
@@ -76,12 +76,12 @@ export default function Home() {
 
   // useEffect para salvar o valor dos pontos do Time A no cookie sempre que ele for alterado
   useEffect(() => {
-    setCookie('pontosA', pontosA.toString() || '', 14);
+    setCookie('pontosA', pontosA || 0, 14);
   }, [pontosA]);
 
   // useEffect para salvar o valor dos pontos do Time B no cookie sempre que ele for alterado
   useEffect(() => {
-    setCookie('pontosB', pontosB.toString() || '', 14);
+    setCookie('pontosB', pontosB || 0, 14);
   }, [pontosB]);
 
   // useEffect para salvar o nome do Time A no cookie sempre que ele for alterado

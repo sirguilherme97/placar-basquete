@@ -7,8 +7,8 @@ import { GiWhistle } from "react-icons/gi";
 export default function Home() {
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
   const [isPaused, setIsPaused] = useState(true); // Estado para controlar a pausa do timer
-  const [pontosA, setPontosA] = useState<number>(0); // Estado para armazenar os pontos do Time A
-  const [pontosB, setPontosB] = useState<number>(0); // Estado para armazenar os pontos do Time B
+  const [pontosA, setPontosA] = useState<any>(0); // Estado para armazenar os pontos do Time A
+  const [pontosB, setPontosB] = useState<any>(0); // Estado para armazenar os pontos do Time B
   const [timeAName, setTimeAName] = useState("Time A"); // Estado para armazenar o nome do Time A
   const [timeBName, setTimeBName] = useState("Time B"); // Estado para armazenar o nome do Time B
 
@@ -18,29 +18,29 @@ export default function Home() {
   }
   // Funções para adicionar pontos ao Time A
   function somarTresA() {
-    setPontosA(parseInt(+pontosA + 3));
+    setPontosA((+pontosA + 3).toString());
     setIsPaused(true);
   }
   function somarDoisA() {
-    setPontosA(parseInt(+pontosA + 2));
+    setPontosA((+pontosA + 2).toString());
     setIsPaused(true);
   }
   function somarUmA() {
-    setPontosA(parseInt(+pontosA + 1));
+    setPontosA((+pontosA + 1).toString());
     setIsPaused(true);
   }
 
   // Funções para adicionar pontos ao Time B
   function somarTresB() {
-    setPontosB(parseInt(+pontosB + 3));
+    setPontosB((+pontosB + 3).toString());
     setIsPaused(true);
   }
   function somarDoisB() {
-    setPontosB(parseInt(+pontosB + 2));
+    setPontosB((+pontosB + 2).toString());
     setIsPaused(true);
   }
   function somarUmB() {
-    setPontosB(parseInt(+pontosB + 1));
+    setPontosB((+pontosB + 1).toString());
     setIsPaused(true);
   }
 

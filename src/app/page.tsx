@@ -240,7 +240,7 @@ export default function Home() {
     setPontosB(0);
     setTimeAName("Time A");
     setTimeBName("Time B");
-    setSeconds(300);
+    setSeconds(0); // Zera o timer
     setIsPaused(true);
     setFaltasA(0);
     setFaltasB(0);
@@ -250,6 +250,13 @@ export default function Home() {
     setPosseBola(null);
     setShowPosseBola(false);
     setUltimaAtualizacaoPosse(null);
+    setTempoInicio(null); // Zera tempo de início
+    setTempoFim(null);   // Zera tempo de fim
+    setAproveitamento({  // Zera médias
+      mediaPontosJogador: '0',
+      mediaPontosTimeA: '0',
+      mediaPontosTimeB: '0'
+    });
 
     // Limpar localStorage
     localStorage.removeItem('jogadoresA');
@@ -267,6 +274,8 @@ export default function Home() {
     localStorage.removeItem('pontosB');
     localStorage.removeItem('seconds');
     localStorage.removeItem('isPaused');
+    localStorage.removeItem('tempoInicio');
+    localStorage.removeItem('tempoFim');
   };
 
   // Função para importar dados

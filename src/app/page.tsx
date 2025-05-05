@@ -1383,6 +1383,68 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Modal de falta */}
+      {showFaltaModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-zinc-800 p-4 rounded-lg w-80">
+            <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <button
+                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
+                  onClick={() => setSelectedFaltaTeam('A')}
+                >
+                  {timeAName}
+                </button>
+                <button
+                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                  onClick={() => setSelectedFaltaTeam('B')}
+                >
+                  {timeBName}
+                </button>
+              </div>
+              <div className="space-y-2">
+                {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
+                  <button
+                    key={jogador.id}
+                    className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                    onClick={() => {
+                      const tempoAtual = `${minutes}:${formattedSeconds}`;
+                      const novaFalta: Falta = {
+                        time: selectedFaltaTeam,
+                        jogadorId: jogador.id,
+                        tempo: tempoAtual
+                      };
+                      setFaltas([...faltas, novaFalta]);
+                      if (selectedFaltaTeam === 'A') {
+                        setFaltasA(faltasA + 1);
+                        setJogadoresA(jogadoresA.map(j =>
+                          j.id === jogador.id ? { ...j, faltas: j.faltas + 1 } : j
+                        ));
+                      } else {
+                        setFaltasB(faltasB + 1);
+                        setJogadoresB(jogadoresB.map(j =>
+                          j.id === jogador.id ? { ...j, faltas: j.faltas + 1 } : j
+                        ));
+                      }
+                      setShowFaltaModal(false);
+                    }}
+                  >
+                    {jogador.nome}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button
+              className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
+              onClick={() => setShowFaltaModal(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

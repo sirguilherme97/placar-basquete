@@ -39,6 +39,14 @@ interface Game {
   faltas: Falta[];
   data: string;
   pausas: number;
+  faltasA: number;
+  faltasB: number;
+  seconds: number;
+  isPaused: boolean;
+  isGameStarted: boolean;
+  posseBola: {time: 'A' | 'B', jogadorId: number} | null;
+  showPosseBola: boolean;
+  ultimaAtualizacaoPosse: number | null;
 }
 
 interface HistoricoCombinado {
@@ -260,6 +268,34 @@ export default function Home() {
     }
   };
 
+  // Salvar dados no localStorage quando houver mudanças
+  useEffect(() => {
+    localStorage.setItem('jogadoresA', JSON.stringify(jogadoresA));
+    localStorage.setItem('jogadoresB', JSON.stringify(jogadoresB));
+    localStorage.setItem('historicoA', JSON.stringify(historicoA));
+    localStorage.setItem('historicoB', JSON.stringify(historicoB));
+    localStorage.setItem('faltas', JSON.stringify(faltas));
+    localStorage.setItem('timeAName', timeAName);
+    localStorage.setItem('timeBName', timeBName);
+    localStorage.setItem('games', JSON.stringify(games));
+    localStorage.setItem('pausas', JSON.stringify(pausas));
+    localStorage.setItem('faltasA', JSON.stringify(faltasA));
+    localStorage.setItem('faltasB', JSON.stringify(faltasB));
+    localStorage.setItem('pontosA', JSON.stringify(pontosA));
+    localStorage.setItem('pontosB', JSON.stringify(pontosB));
+    localStorage.setItem('seconds', JSON.stringify(seconds));
+    localStorage.setItem('isPaused', JSON.stringify(isPaused));
+    localStorage.setItem('isGameStarted', JSON.stringify(isGameStarted));
+    localStorage.setItem('posseBola', JSON.stringify(posseBola));
+    localStorage.setItem('showPosseBola', JSON.stringify(showPosseBola));
+    localStorage.setItem('ultimaAtualizacaoPosse', JSON.stringify(ultimaAtualizacaoPosse));
+  }, [
+    jogadoresA, jogadoresB, historicoA, historicoB, faltas,
+    timeAName, timeBName, games, pausas, faltasA, faltasB,
+    pontosA, pontosB, seconds, isPaused, isGameStarted,
+    posseBola, showPosseBola, ultimaAtualizacaoPosse
+  ]);
+
   // Função para salvar o jogo atual
   const salvarGame = () => {
     const novoGame: Game = {
@@ -274,7 +310,15 @@ export default function Home() {
       historicoB,
       faltas,
       data: new Date().toLocaleString(),
-      pausas
+      pausas,
+      faltasA,
+      faltasB,
+      seconds,
+      isPaused,
+      isGameStarted,
+      posseBola,
+      showPosseBola,
+      ultimaAtualizacaoPosse
     };
 
     setGames([...games, novoGame]);
@@ -340,7 +384,7 @@ export default function Home() {
     return historicoCombinado;
   };
 
-  // Função para exportar dados do localStorage
+  // Função para exportar dados
   const exportarDados = () => {
     const dados = {
       games,
@@ -354,6 +398,14 @@ export default function Home() {
       pausas,
       faltasA,
       faltasB,
+      pontosA,
+      pontosB,
+      seconds,
+      isPaused,
+      isGameStarted,
+      posseBola,
+      showPosseBola,
+      ultimaAtualizacaoPosse,
       dataExportacao: new Date().toLocaleString()
     };
 

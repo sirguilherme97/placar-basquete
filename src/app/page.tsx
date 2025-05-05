@@ -137,238 +137,9 @@ export default function Home() {
     setIsPaused(true);
   }
 
-  // useEffect para carregar os valores salvos dos cookies ao carregar a página
-  useEffect(() => {
-    const savedPontosA = parseInt(getCookie('pontosA'));
-    const savedPontosB = parseInt(getCookie('pontosB'));
-    const savedTimeAName = getCookie('timeAName');
-    const savedTimeBName = getCookie('timeBName');
-    const savedSeconds = parseInt(getCookie('seconds'));
-
-    if (!isNaN(savedPontosA)) {
-      setPontosA(savedPontosA);
-    }
-
-    if (!isNaN(savedPontosB)) {
-      setPontosB(savedPontosB);
-    }
-
-    if (savedTimeAName) {
-      setTimeAName(savedTimeAName);
-    }
-
-    if (savedTimeBName) {
-      setTimeBName(savedTimeBName);
-    }
-
-    if (!isNaN(savedSeconds)) {
-      setSeconds(savedSeconds);
-    }
-
-  }, []);
-
-  // useEffect para salvar o valor dos pontos do Time A no cookie sempre que ele for alterado
-  useEffect(() => {
-    setCookie('pontosA', pontosA || 0, 14);
-  }, [pontosA]);
-
-  // useEffect para salvar o valor dos pontos do Time B no cookie sempre que ele for alterado
-  useEffect(() => {
-    setCookie('pontosB', pontosB || 0, 14);
-  }, [pontosB]);
-
-  // useEffect para salvar o nome do Time A no cookie sempre que ele for alterado
-  useEffect(() => {
-    setCookie('timeAName', timeAName, 14);
-  }, [timeAName]);
-
-  // useEffect para salvar o nome do Time B no cookie sempre que ele for alterado
-  useEffect(() => {
-    setCookie('timeBName', timeBName, 14);
-  }, [timeBName]);
-
-  // useEffect para salvar o tempo em cookie sempre que ele for alterado
-  useEffect(() => {
-    setCookie('seconds', seconds.toString(), 14);
-  }, [seconds]);
-
-  // Função para obter o valor de um cookie
-  const getCookie = (name: string) => {
-    const cookieValue = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-    return cookieValue ? cookieValue[2] : '';
-  };
-
-  // Função para definir o valor de um cookie
-  const setCookie = (name: any, value: any, days = 7) => {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + date.toUTCString();
-    document.cookie = name + "=" + value + "; " + expires;
-  };
-
-  // Funções para reiniciar os valores do Time A e Time B
-  function handleRestartA() {
-    setTimeAName("Time A");
-    setPontosA(0);
-  }
-  function handleRestartB() {
-    setTimeBName("Time B");
-    setPontosB(0);
-  }
-
-  // useEffect para controlar a contagem regressiva do timer
-  useEffect(() => {
-    if (!isPaused && seconds > 0) { // Verifica se o timer não está em pausa e ainda há segundos restantes
-      const timer = setTimeout(() => {
-        setSeconds(seconds - 1);
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isPaused, seconds]);
-
-  const minutes = Math.floor(seconds / 60); // Calcula os minutos restantes
-  const formattedSeconds = seconds % 60 < 10 ? `0${seconds % 60}` : seconds % 60; // Formata os segundos para exibição
-
-  // Função para alternar entre pausar e retomar o timer
-  const handleTimerToggle = () => {
-    if (!isPaused && isGameStarted) {
-      setPausas(pausas + 1);
-    }
-    setIsPaused(!isPaused);
-    if (!isGameStarted) {
-      setIsGameStarted(true);
-    }
-  };
-
-  // Funções para atualizar o nome do Time A e Time B ao alterar o valor dos inputs
-  const handleTimeANameChange = (event: any) => {
-    setTimeAName(event.target.value);
-  };
-  const handleTimeBNameChange = (event: any) => {
-    setTimeBName(event.target.value);
-  };
-
-  // Funções para atualizar o valor do timer e dos pontos do Time A e Time B ao alterar o valor dos inputs
-  const handleTimer = (event: any) => {
-    setSeconds(event.target.value);
-  };
-  const handlePontosA = (event: any) => {
-    setPontosA(event.target.value);
-  };
-  const handlePontosB = (event: any) => {
-    setPontosB(event.target.value);
-  };
-
-  // Funções para adicionar jogadores
-  const openAddPlayerPopover = (team: 'A' | 'B') => {
-    setTeamToAddPlayer(team);
-    setNewPlayerName('');
-    setShowAddPlayerPopover(true);
-  };
-
-  const adicionarJogador = () => {
-    if (!newPlayerName.trim()) return;
-
-    const novoJogador: Jogador = {
-      id: teamToAddPlayer === 'A' ? jogadoresA.length + 1 : jogadoresB.length + 1,
-      nome: newPlayerName.trim(),
-      pontos: 0,
-      faltas: 0,
-      time: teamToAddPlayer
-    };
-
-    if (teamToAddPlayer === 'A') {
-      setJogadoresA([...jogadoresA, novoJogador]);
-    } else {
-      setJogadoresB([...jogadoresB, novoJogador]);
-    }
-
-    setShowAddPlayerPopover(false);
-    setNewPlayerName('');
-  };
-
-  // Função para abrir o popover de seleção de jogador
-  const handlePointClick = (team: 'A' | 'B', points: number) => {
-    setSelectedTeam(team);
-    setSelectedPoints(points);
-    setShowPopover(true);
-    setIsPaused(true);
-  };
-
-  // Função para registrar ponto com jogador
-  const registrarPonto = (jogadorId: number) => {
-    const tempoAtual = `${minutes}:${formattedSeconds}`;
-    const novoPonto: Ponto = {
-      jogadorId,
-      pontos: selectedPoints,
-      tempo: tempoAtual
-    };
-
-    if (selectedTeam === 'A') {
-      setHistoricoA([...historicoA, novoPonto]);
-      setPontosA((+pontosA + selectedPoints).toString());
-      setJogadoresA(jogadoresA.map(j =>
-        j.id === jogadorId ? { ...j, pontos: j.pontos + selectedPoints } : j
-      ));
-    } else {
-      setHistoricoB([...historicoB, novoPonto]);
-      setPontosB((+pontosB + selectedPoints).toString());
-      setJogadoresB(jogadoresB.map(j =>
-        j.id === jogadorId ? { ...j, pontos: j.pontos + selectedPoints } : j
-      ));
-    }
-
-    setShowPopover(false);
-  };
-
-  // Função para registrar falta
-  const registrarFalta = (jogadorId: number) => {
-    const tempoAtual = `${minutes}:${formattedSeconds}`;
-    const novaFalta: Falta = {
-      jogadorId,
-      time: selectedFaltaTeam,
-      tempo: tempoAtual
-    };
-
-    setFaltas([...faltas, novaFalta]);
-
-    if (selectedFaltaTeam === 'A') {
-      setFaltasA(faltasA + 1);
-      setJogadoresA(jogadoresA.map(j =>
-        j.id === jogadorId ? { ...j, faltas: j.faltas + 1 } : j
-      ));
-    } else {
-      setFaltasB(faltasB + 1);
-      setJogadoresB(jogadoresB.map(j =>
-        j.id === jogadorId ? { ...j, faltas: j.faltas + 1 } : j
-      ));
-    }
-
-    setShowFaltaModal(false);
-  };
-
-  // Função para obter o MVP
-  const getMVP = () => {
-    const todosJogadores = [...jogadoresA, ...jogadoresB];
-    const mvp = todosJogadores.reduce((mvp, jogador) =>
-      jogador.pontos > mvp.pontos ? jogador : mvp
-      , { pontos: 0 } as Jogador);
-
-    return mvp.pontos > 0 ? mvp : null;
-  };
-
-  // Função para obter o top 3 MVP
-  const getTop3MVP = () => {
-    const todosJogadores = [...jogadoresA.map(j => ({ ...j, time: 'A' })), ...jogadoresB.map(j => ({ ...j, time: 'B' }))];
-    return todosJogadores
-      .filter(j => j.pontos > 0)
-      .sort((a, b) => b.pontos - a.pontos)
-      .slice(0, 3);
-  };
-
   // Carregar dados do localStorage ao iniciar
   useEffect(() => {
+    try {
     const savedJogadoresA = localStorage.getItem('jogadoresA');
     const savedJogadoresB = localStorage.getItem('jogadoresB');
     const savedHistoricoA = localStorage.getItem('historicoA');
@@ -380,6 +151,10 @@ export default function Home() {
     const savedPausas = localStorage.getItem('pausas');
     const savedFaltasA = localStorage.getItem('faltasA');
     const savedFaltasB = localStorage.getItem('faltasB');
+      const savedPontosA = localStorage.getItem('pontosA');
+      const savedPontosB = localStorage.getItem('pontosB');
+      const savedSeconds = localStorage.getItem('seconds');
+      const savedIsPaused = localStorage.getItem('isPaused');
 
     if (savedJogadoresA) setJogadoresA(JSON.parse(savedJogadoresA));
     if (savedJogadoresB) setJogadoresB(JSON.parse(savedJogadoresB));
@@ -392,57 +167,16 @@ export default function Home() {
     if (savedPausas) setPausas(JSON.parse(savedPausas));
     if (savedFaltasA) setFaltasA(JSON.parse(savedFaltasA));
     if (savedFaltasB) setFaltasB(JSON.parse(savedFaltasB));
+      if (savedPontosA) setPontosA(JSON.parse(savedPontosA));
+      if (savedPontosB) setPontosB(JSON.parse(savedPontosB));
+      if (savedSeconds) setSeconds(JSON.parse(savedSeconds));
+      if (savedIsPaused) setIsPaused(JSON.parse(savedIsPaused));
+    } catch (error) {
+      console.error('Erro ao carregar dados do localStorage:', error);
+      // Resetar para valores padrão em caso de erro
+      resetarTudo();
+    }
   }, []);
-
-  // Salvar jogadores no localStorage
-  useEffect(() => {
-    localStorage.setItem('jogadoresA', JSON.stringify(jogadoresA));
-  }, [jogadoresA]);
-
-  useEffect(() => {
-    localStorage.setItem('jogadoresB', JSON.stringify(jogadoresB));
-  }, [jogadoresB]);
-
-  // Salvar histórico no localStorage
-  useEffect(() => {
-    localStorage.setItem('historicoA', JSON.stringify(historicoA));
-  }, [historicoA]);
-
-  useEffect(() => {
-    localStorage.setItem('historicoB', JSON.stringify(historicoB));
-  }, [historicoB]);
-
-  // Salvar faltas no localStorage
-  useEffect(() => {
-    localStorage.setItem('faltas', JSON.stringify(faltas));
-  }, [faltas]);
-
-  useEffect(() => {
-    localStorage.setItem('faltasA', JSON.stringify(faltasA));
-  }, [faltasA]);
-
-  useEffect(() => {
-    localStorage.setItem('faltasB', JSON.stringify(faltasB));
-  }, [faltasB]);
-
-  // Salvar pausas no localStorage
-  useEffect(() => {
-    localStorage.setItem('pausas', JSON.stringify(pausas));
-  }, [pausas]);
-
-  // Salvar nomes dos times no localStorage
-  useEffect(() => {
-    localStorage.setItem('timeAName', timeAName);
-  }, [timeAName]);
-
-  useEffect(() => {
-    localStorage.setItem('timeBName', timeBName);
-  }, [timeBName]);
-
-  // Salvar games no localStorage
-  useEffect(() => {
-    localStorage.setItem('games', JSON.stringify(games));
-  }, [games]);
 
   // Função para resetar tudo
   const resetarTudo = () => {
@@ -461,6 +195,9 @@ export default function Home() {
     setFaltas([]);
     setPausas(0);
     setIsGameStarted(false);
+    setPosseBola(null);
+    setShowPosseBola(false);
+    setUltimaAtualizacaoPosse(null);
 
     // Limpar localStorage
     localStorage.removeItem('jogadoresA');
@@ -474,6 +211,53 @@ export default function Home() {
     localStorage.removeItem('timeAName');
     localStorage.removeItem('timeBName');
     localStorage.removeItem('games');
+    localStorage.removeItem('pontosA');
+    localStorage.removeItem('pontosB');
+    localStorage.removeItem('seconds');
+    localStorage.removeItem('isPaused');
+  };
+
+  // Função para importar dados
+  const importarDados = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const dados = JSON.parse(e.target?.result as string);
+          
+          // Validar os dados antes de importar
+          if (!dados || typeof dados !== 'object') {
+            throw new Error('Formato de arquivo inválido');
+          }
+
+          // Resetar tudo antes de importar novos dados
+          resetarTudo();
+
+          // Importar dados validados
+          if (Array.isArray(dados.jogadoresA)) setJogadoresA(dados.jogadoresA);
+          if (Array.isArray(dados.jogadoresB)) setJogadoresB(dados.jogadoresB);
+          if (Array.isArray(dados.historicoA)) setHistoricoA(dados.historicoA);
+          if (Array.isArray(dados.historicoB)) setHistoricoB(dados.historicoB);
+          if (Array.isArray(dados.faltas)) setFaltas(dados.faltas);
+          if (typeof dados.timeAName === 'string') setTimeAName(dados.timeAName);
+          if (typeof dados.timeBName === 'string') setTimeBName(dados.timeBName);
+          if (typeof dados.pausas === 'number') setPausas(dados.pausas);
+          if (typeof dados.faltasA === 'number') setFaltasA(dados.faltasA);
+          if (typeof dados.faltasB === 'number') setFaltasB(dados.faltasB);
+          if (typeof dados.pontosA === 'number') setPontosA(dados.pontosA);
+          if (typeof dados.pontosB === 'number') setPontosB(dados.pontosB);
+          if (typeof dados.seconds === 'number') setSeconds(dados.seconds);
+          if (typeof dados.isPaused === 'boolean') setIsPaused(dados.isPaused);
+
+          alert('Dados importados com sucesso!');
+        } catch (error) {
+          console.error('Erro ao importar dados:', error);
+          alert('Erro ao importar dados. Verifique se o arquivo é válido.');
+        }
+      };
+      reader.readAsText(file);
+    }
   };
 
   // Função para salvar o jogo atual
@@ -583,34 +367,6 @@ export default function Home() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  // Função para importar dados
-  const importarDados = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const dados = JSON.parse(e.target?.result as string);
-          if (dados.games) setGames(dados.games);
-          if (dados.jogadoresA) setJogadoresA(dados.jogadoresA);
-          if (dados.jogadoresB) setJogadoresB(dados.jogadoresB);
-          if (dados.historicoA) setHistoricoA(dados.historicoA);
-          if (dados.historicoB) setHistoricoB(dados.historicoB);
-          if (dados.faltas) setFaltas(dados.faltas);
-          if (dados.timeAName) setTimeAName(dados.timeAName);
-          if (dados.timeBName) setTimeBName(dados.timeBName);
-          if (dados.pausas) setPausas(dados.pausas);
-          if (dados.faltasA) setFaltasA(dados.faltasA);
-          if (dados.faltasB) setFaltasB(dados.faltasB);
-          alert('Dados importados com sucesso!');
-        } catch (error) {
-          alert('Erro ao importar dados. Verifique se o arquivo é válido.');
-        }
-      };
-      reader.readAsText(file);
-    }
   };
 
   // Função para calcular estatísticas do jogador
@@ -751,6 +507,148 @@ export default function Home() {
       setUltimaAtualizacaoPosse(agora);
     }
   }, [posseBola, showPosseBola, isPaused]);
+
+  // Funções para reiniciar os valores do Time A e Time B
+  const handleRestartA = () => {
+    setTimeAName("Time A");
+    setPontosA(0);
+  };
+
+  const handleRestartB = () => {
+    setTimeBName("Time B");
+    setPontosB(0);
+  };
+
+  // Funções para atualizar o nome do Time A e Time B
+  const handleTimeANameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTimeAName(event.target.value);
+  };
+
+  const handleTimeBNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setTimeBName(event.target.value);
+  };
+
+  // Funções para atualizar o timer e os pontos
+  const handleTimer = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSeconds(Number(event.target.value));
+  };
+
+  const handlePontosA = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPontosA(Number(event.target.value));
+  };
+
+  const handlePontosB = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPontosB(Number(event.target.value));
+  };
+
+  // Função para alternar entre pausar e retomar o timer
+  const handleTimerToggle = () => {
+    if (!isPaused && isGameStarted) {
+      setPausas(pausas + 1);
+    }
+    setIsPaused(!isPaused);
+    if (!isGameStarted) {
+      setIsGameStarted(true);
+    }
+  };
+
+  // Função para abrir o popover de seleção de jogador
+  const handlePointClick = (team: 'A' | 'B', points: number) => {
+    setSelectedTeam(team);
+    setSelectedPoints(points);
+    setShowPopover(true);
+    setIsPaused(true);
+  };
+
+  // Função para registrar ponto com jogador
+  const registrarPonto = (jogadorId: number) => {
+    const tempoAtual = `${minutes}:${formattedSeconds}`;
+    const novoPonto: Ponto = {
+      jogadorId,
+      pontos: selectedPoints,
+      tempo: tempoAtual
+    };
+
+    if (selectedTeam === 'A') {
+      setHistoricoA([...historicoA, novoPonto]);
+      setPontosA((+pontosA + selectedPoints).toString());
+      setJogadoresA(jogadoresA.map(j =>
+        j.id === jogadorId ? { ...j, pontos: j.pontos + selectedPoints } : j
+      ));
+    } else {
+      setHistoricoB([...historicoB, novoPonto]);
+      setPontosB((+pontosB + selectedPoints).toString());
+      setJogadoresB(jogadoresB.map(j =>
+        j.id === jogadorId ? { ...j, pontos: j.pontos + selectedPoints } : j
+      ));
+    }
+
+    setShowPopover(false);
+  };
+
+  // Função para abrir o popover de adicionar jogador
+  const openAddPlayerPopover = (team: 'A' | 'B') => {
+    setTeamToAddPlayer(team);
+    setNewPlayerName('');
+    setShowAddPlayerPopover(true);
+  };
+
+  // Função para adicionar jogador
+  const adicionarJogador = () => {
+    if (!newPlayerName.trim()) return;
+
+    const novoJogador: Jogador = {
+      id: teamToAddPlayer === 'A' ? jogadoresA.length + 1 : jogadoresB.length + 1,
+      nome: newPlayerName.trim(),
+      pontos: 0,
+      faltas: 0,
+      time: teamToAddPlayer,
+      tempoPosse: 0
+    };
+
+    if (teamToAddPlayer === 'A') {
+      setJogadoresA([...jogadoresA, novoJogador]);
+    } else {
+      setJogadoresB([...jogadoresB, novoJogador]);
+    }
+
+    setShowAddPlayerPopover(false);
+    setNewPlayerName('');
+  };
+
+  // Função para obter o top 3 MVP
+  const getTop3MVP = () => {
+    const todosJogadores = [...jogadoresA.map(j => ({ ...j, time: 'A' })), ...jogadoresB.map(j => ({ ...j, time: 'B' }))];
+    return todosJogadores
+      .filter(j => j.pontos > 0)
+      .sort((a, b) => b.pontos - a.pontos)
+      .slice(0, 3);
+  };
+
+  // Formatação do tempo
+  const minutes = Math.floor(seconds / 60);
+  const formattedSeconds = seconds % 60 < 10 ? `0${seconds % 60}` : seconds % 60;
+
+  // useEffect para controlar a contagem regressiva do timer
+  useEffect(() => {
+    if (!isPaused && seconds > 0) {
+      const timer = setTimeout(() => {
+        setSeconds(seconds - 1);
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isPaused, seconds]);
+
+  // Função para formatar o tempo em HH:mm:ss
+  const formatarTempo = (segundos: number) => {
+    const segundosInteiro = Math.floor(segundos); // Arredonda para baixo
+    const horas = Math.floor(segundosInteiro / 3600);
+    const minutos = Math.floor((segundosInteiro % 3600) / 60);
+    const segundosRestantes = segundosInteiro % 60;
+    
+    return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
+  };
 
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
@@ -991,8 +889,8 @@ export default function Home() {
 
                   {/* Botões de controle */}
                   <div className="flex flex-col items-center">
-                    <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
-                    <GiWhistle onClick={StartSound} size={120} />
+                <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
+                <GiWhistle onClick={StartSound} size={120} />
                   </div>
 
                   {/* Boxes dos jogadores do Time B */}
@@ -1137,24 +1035,24 @@ export default function Home() {
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
-                        <div className="flex justify-between items-center">
+              <div className="flex justify-between items-center">
                           <div>
                             <p className="text-lg font-bold">{jogador.nome}</p>
                             {stats.totalFaltas > 0 && (
                               <div className="flex items-center gap-1 mt-1">
                                 <GiCardPlay className="text-yellow-500" size={20} />
                                 <span className="text-sm text-zinc-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
-                              </div>
+                </div>
                             )}
-                          </div>
+                </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
                             <p className="text-sm text-zinc-400">
                               {stats.pontos.length} {stats.pontos.length === 1 ? 'cesta' : 'cestas'}
                             </p>
-                          </div>
-                        </div>
-                      </div>
+              </div>
+              </div>
+            </div>
                     );
                   })}
                 </div>
@@ -1236,7 +1134,7 @@ export default function Home() {
                   >
                     Fechar
                   </button>
-                </div>
+              </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-zinc-700 p-4 rounded-lg">
                     <h3 className="text-xl font-bold mb-2">Estatísticas Gerais</h3>
@@ -1244,7 +1142,7 @@ export default function Home() {
                       <div className="flex justify-between">
                         <span>Time:</span>
                         <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
-                      </div>
+            </div>
                       <div className="flex justify-between">
                         <span>Total de Pontos:</span>
                         <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
@@ -1268,7 +1166,7 @@ export default function Home() {
                       <div className="flex justify-between">
                         <span>Tempo de Posse:</span>
                         <span className="font-bold">
-                          {Math.floor((selectedPlayer.tempoPosse || 0) / 60)}:{(selectedPlayer.tempoPosse || 0) % 60 < 10 ? '0' : ''}{(selectedPlayer.tempoPosse || 0) % 60}
+                          {formatarTempo(selectedPlayer.tempoPosse || 0)}
                         </span>
                       </div>
                     </div>
@@ -1384,23 +1282,23 @@ export default function Home() {
           {/* Top 3 MVP */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
             <h3 className="text-xl font-bold mb-4">Top 3 MVP</h3>
-            {getTop3MVP().length > 0 ? (
-              <div className="space-y-2">
-                {getTop3MVP().map((jogador, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <div>
-                      <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
-                      <p className="text-sm text-zinc-400">
-                        {jogador.time === 'A' ? timeAName : timeBName}
-                      </p>
+              {getTop3MVP().length > 0 ? (
+                <div className="space-y-2">
+                  {getTop3MVP().map((jogador, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div>
+                        <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
+                        <p className="text-sm text-zinc-400">
+                          {jogador.time === 'A' ? timeAName : timeBName}
+                        </p>
+                      </div>
+                      <p className="text-xl font-bold">{jogador.pontos} pts</p>
                     </div>
-                    <p className="text-xl font-bold">{jogador.pontos} pts</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
+              )}
           </div>
 
           {/* Destaques */}
@@ -1410,7 +1308,7 @@ export default function Home() {
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Jogador Mais Eficiente</h4>
                 {getGameStats().jogadorMaisEficiente && (
-                  <div>
+              <div>
                     <p className="text-lg font-bold">
                       {getGameStats().jogadorMaisEficiente?.nome}
                     </p>
@@ -1419,9 +1317,9 @@ export default function Home() {
                         ((getGameStats().jogadorMaisEficiente?.pontos || 0) / (getGameStats().jogadorMaisEficiente?.faltas || 1)).toFixed(1) : 
                         '0.0'} pts/falta
                     </p>
-                  </div>
+                          </div>
                 )}
-              </div>
+                        </div>
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Jogador Mais Decisivo</h4>
                 {getGameStats().jogadorMaisDecisivo && (
@@ -1432,11 +1330,11 @@ export default function Home() {
                     <p className="text-sm text-zinc-400">
                       {getPlayerStats(getGameStats().jogadorMaisDecisivo!).totalPontos} pontos nos últimos 5 minutos
                     </p>
-                  </div>
+                </div>
                 )}
               </div>
-            </div>
-          </div>
+                          </div>
+                        </div>
 
           {/* Outros */}
           <div className="bg-zinc-800 p-4 rounded-lg">
@@ -1447,9 +1345,9 @@ export default function Home() {
                 <p className="text-2xl font-bold text-yellow-500">
                   {Math.floor((300 - seconds) / 60)}:{((300 - seconds) % 60).toString().padStart(2, '0')}
                 </p>
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Posse de Bola */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
@@ -1457,17 +1355,17 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">{timeAName}</h4>
-                <div className="space-y-2">
+              <div className="space-y-2">
                   {jogadoresA.map((jogador) => (
                     <div key={jogador.id} className="flex justify-between items-center">
                       <span>{jogador.nome}</span>
                       <span className="font-bold">
-                        {Math.floor((jogador.tempoPosse || 0) / 60)}:{(jogador.tempoPosse || 0) % 60 < 10 ? '0' : ''}{(jogador.tempoPosse || 0) % 60}
+                        {formatarTempo(jogador.tempoPosse || 0)}
                       </span>
-                    </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
+            </div>
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">{timeBName}</h4>
                 <div className="space-y-2">
@@ -1475,7 +1373,7 @@ export default function Home() {
                     <div key={jogador.id} className="flex justify-between items-center">
                       <span>{jogador.nome}</span>
                       <span className="font-bold">
-                        {Math.floor((jogador.tempoPosse || 0) / 60)}:{(jogador.tempoPosse || 0) % 60 < 10 ? '0' : ''}{(jogador.tempoPosse || 0) % 60}
+                        {formatarTempo(jogador.tempoPosse || 0)}
                       </span>
                     </div>
                   ))}

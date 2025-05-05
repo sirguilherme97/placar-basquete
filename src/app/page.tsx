@@ -192,33 +192,33 @@ export default function Home() {
   // Carregar dados do localStorage ao iniciar
   useEffect(() => {
     try {
-      const savedJogadoresA = localStorage.getItem('jogadoresA');
-      const savedJogadoresB = localStorage.getItem('jogadoresB');
-      const savedHistoricoA = localStorage.getItem('historicoA');
-      const savedHistoricoB = localStorage.getItem('historicoB');
-      const savedFaltas = localStorage.getItem('faltas');
-      const savedTimeAName = localStorage.getItem('timeAName');
-      const savedTimeBName = localStorage.getItem('timeBName');
-      const savedGames = localStorage.getItem('games');
-      const savedPausas = localStorage.getItem('pausas');
-      const savedFaltasA = localStorage.getItem('faltasA');
-      const savedFaltasB = localStorage.getItem('faltasB');
+    const savedJogadoresA = localStorage.getItem('jogadoresA');
+    const savedJogadoresB = localStorage.getItem('jogadoresB');
+    const savedHistoricoA = localStorage.getItem('historicoA');
+    const savedHistoricoB = localStorage.getItem('historicoB');
+    const savedFaltas = localStorage.getItem('faltas');
+    const savedTimeAName = localStorage.getItem('timeAName');
+    const savedTimeBName = localStorage.getItem('timeBName');
+    const savedGames = localStorage.getItem('games');
+    const savedPausas = localStorage.getItem('pausas');
+    const savedFaltasA = localStorage.getItem('faltasA');
+    const savedFaltasB = localStorage.getItem('faltasB');
       const savedPontosA = localStorage.getItem('pontosA');
       const savedPontosB = localStorage.getItem('pontosB');
       const savedSeconds = localStorage.getItem('seconds');
       const savedIsPaused = localStorage.getItem('isPaused');
 
-      if (savedJogadoresA) setJogadoresA(JSON.parse(savedJogadoresA));
-      if (savedJogadoresB) setJogadoresB(JSON.parse(savedJogadoresB));
-      if (savedHistoricoA) setHistoricoA(JSON.parse(savedHistoricoA));
-      if (savedHistoricoB) setHistoricoB(JSON.parse(savedHistoricoB));
-      if (savedFaltas) setFaltas(JSON.parse(savedFaltas));
-      if (savedTimeAName) setTimeAName(savedTimeAName);
-      if (savedTimeBName) setTimeBName(savedTimeBName);
-      if (savedGames) setGames(JSON.parse(savedGames));
-      if (savedPausas) setPausas(JSON.parse(savedPausas));
-      if (savedFaltasA) setFaltasA(JSON.parse(savedFaltasA));
-      if (savedFaltasB) setFaltasB(JSON.parse(savedFaltasB));
+    if (savedJogadoresA) setJogadoresA(JSON.parse(savedJogadoresA));
+    if (savedJogadoresB) setJogadoresB(JSON.parse(savedJogadoresB));
+    if (savedHistoricoA) setHistoricoA(JSON.parse(savedHistoricoA));
+    if (savedHistoricoB) setHistoricoB(JSON.parse(savedHistoricoB));
+    if (savedFaltas) setFaltas(JSON.parse(savedFaltas));
+    if (savedTimeAName) setTimeAName(savedTimeAName);
+    if (savedTimeBName) setTimeBName(savedTimeBName);
+    if (savedGames) setGames(JSON.parse(savedGames));
+    if (savedPausas) setPausas(JSON.parse(savedPausas));
+    if (savedFaltasA) setFaltasA(JSON.parse(savedFaltasA));
+    if (savedFaltasB) setFaltasB(JSON.parse(savedFaltasB));
       if (savedPontosA) setPontosA(JSON.parse(savedPontosA));
       if (savedPontosB) setPontosB(JSON.parse(savedPontosB));
       if (savedSeconds) setSeconds(JSON.parse(savedSeconds));
@@ -939,6 +939,27 @@ export default function Home() {
     carregarEstado();
   }, []);
 
+  // Atualizar médias sempre que pontos ou jogadores mudarem
+  useEffect(() => {
+    const totalJogadores = jogadoresA.length + jogadoresB.length;
+    const mediaPontosJogador = totalJogadores > 0 ? ((+pontosA + +pontosB) / totalJogadores).toFixed(1) : '0';
+    const mediaPontosTimeA = jogadoresA.length > 0 ? (+pontosA / jogadoresA.length).toFixed(1) : '0';
+    const mediaPontosTimeB = jogadoresB.length > 0 ? (+pontosB / jogadoresB.length).toFixed(1) : '0';
+    const novoAproveitamento = {
+      mediaPontosJogador,
+      mediaPontosTimeA,
+      mediaPontosTimeB
+    };
+    setAproveitamento(novoAproveitamento);
+    // Salvar no localStorage também
+    const estadoSalvo = localStorage.getItem('estadoJogo');
+    if (estadoSalvo) {
+      const estado = JSON.parse(estadoSalvo);
+      estado.aproveitamento = novoAproveitamento;
+      localStorage.setItem('estadoJogo', JSON.stringify(estado));
+    }
+  }, [pontosA, pontosB, jogadoresA, jogadoresB]);
+
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
       {/* Botão fixo para salvar game */}
@@ -1177,8 +1198,8 @@ export default function Home() {
 
                   {/* Botões de controle */}
                   <div className="flex flex-col items-center">
-                    <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
-                    <GiWhistle onClick={StartSound} size={120} />
+                <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
+                <GiWhistle onClick={StartSound} size={120} />
                   </div>
 
                   {/* Boxes dos jogadores do Time B */}
@@ -1332,21 +1353,21 @@ export default function Home() {
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">3pts:</span>
                                 <span className="text-sm">{cestas3pts} cestas ({cestas3pts * 3} pts)</span>
-                              </div>
+                </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">2pts:</span>
                                 <span className="text-sm">{cestas2pts} cestas ({cestas2pts * 2} pts)</span>
-                              </div>
+                </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">1pt:</span>
                                 <span className="text-sm">{lancesLivres} lances ({lancesLivres} pts)</span>
-                              </div>
-                            </div>
+              </div>
+              </div>
                             {stats.totalFaltas > 0 && (
                               <div className="flex items-center gap-1 mt-2">
                                 <GiCardPlay className="text-red-500" size={20} />
                                 <span className="text-sm text-red-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
-                              </div>
+            </div>
                             )}
                             <div className="mt-2">
                               <span className="text-sm text-zinc-400">Posse: {formatarTempo(jogador.tempoPosse || 0)}</span>
@@ -1463,7 +1484,7 @@ export default function Home() {
                   >
                     Fechar
                   </button>
-                </div>
+              </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-zinc-700 p-4 rounded-lg">
                     <h3 className="text-xl font-bold mb-2">Estatísticas Gerais</h3>
@@ -1471,7 +1492,7 @@ export default function Home() {
                       <div className="flex justify-between">
                         <span>Time:</span>
                         <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
-                      </div>
+            </div>
                       <div className="flex justify-between">
                         <span>Total de Pontos:</span>
                         <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
@@ -1612,23 +1633,23 @@ export default function Home() {
           {/* Top 3 MVP */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
             <h3 className="text-xl font-bold mb-4">Top 3 MVP</h3>
-            {getTop3MVP().length > 0 ? (
-              <div className="space-y-2">
-                {getTop3MVP().map((jogador, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <div>
-                      <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
-                      <p className="text-sm text-zinc-400">
-                        {jogador.time === 'A' ? timeAName : timeBName}
-                      </p>
+              {getTop3MVP().length > 0 ? (
+                <div className="space-y-2">
+                  {getTop3MVP().map((jogador, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div>
+                        <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
+                        <p className="text-sm text-zinc-400">
+                          {jogador.time === 'A' ? timeAName : timeBName}
+                        </p>
+                      </div>
+                      <p className="text-xl font-bold">{jogador.pontos} pts</p>
                     </div>
-                    <p className="text-xl font-bold">{jogador.pontos} pts</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
-            )}
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
+              )}
           </div>
 
           {/* Destaques */}
@@ -1641,7 +1662,7 @@ export default function Home() {
                   const jogadorMaisEficiente = getGameStats().jogadorMaisEficiente;
                   if (!jogadorMaisEficiente) return <></>;
                   const eficiencia = calcularEficiencia(jogadorMaisEficiente);
-                  return (
+                      return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMaisEficiente.nome}</p>
                       <p className="text-sm text-zinc-400">{eficiencia.toFixed(1)} pts/min</p>
@@ -1653,10 +1674,10 @@ export default function Home() {
                           {jogadorMaisEficiente.faltas} falta{jogadorMaisEficiente.faltas !== 1 ? 's' : ''}
                         </p>
                       )}
-                    </div>
-                  );
+                        </div>
+                      );
                 })()}
-              </div>
+                </div>
 
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Jogador com Menos Faltas</h4>
@@ -1671,7 +1692,7 @@ export default function Home() {
                     <div>
                       <p className="text-lg font-bold">{jogadorMenosFaltas.nome}</p>
                       <p className="text-sm text-zinc-400">{jogadorMenosFaltas.faltas} falta{jogadorMenosFaltas.faltas !== 1 ? 's' : ''}</p>
-                    </div>
+              </div>
                   );
                 })()}
               </div>
@@ -1686,7 +1707,7 @@ export default function Home() {
                   }, null as Jogador | null);
                   if (!jogadorMaisPosse) return <></>;
                   return (
-                    <div>
+              <div>
                       <p className="text-lg font-bold">{jogadorMaisPosse.nome}</p>
                       <p className="text-sm text-zinc-400">{formatarTempo(jogadorMaisPosse.tempoPosse || 0)}</p>
                     </div>
@@ -1706,11 +1727,11 @@ export default function Home() {
                     return mais3pts;
                   }, null as (Jogador & { cestas3pts: number }) | null);
                   if (!jogadorMais3pts) return <></>;
-                  return (
+                      return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMais3pts.nome}</p>
                       <p className="text-sm text-zinc-400">{jogadorMais3pts.cestas3pts} cestas de 3 pontos</p>
-                    </div>
+                          </div>
                   );
                 })()}
               </div>
@@ -1728,12 +1749,12 @@ export default function Home() {
                     <div>
                       <p className="text-lg font-bold">{jogadorMaisPontos.nome}</p>
                       <p className="text-sm text-zinc-400">{jogadorMaisPontos.pontos} pontos</p>
-                    </div>
-                  );
+                        </div>
+                      );
                 })()}
+                </div>
               </div>
             </div>
-          </div>
 
           {/* Outros */}
           <div className="bg-zinc-800 p-4 rounded-lg">
@@ -1754,7 +1775,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">{timeAName}</h4>
-                <div className="space-y-2">
+              <div className="space-y-2">
                   {jogadoresA.map((jogador) => (
                     <div key={jogador.id} className="flex justify-between items-center">
                       <span>{jogador.nome}</span>
@@ -1774,40 +1795,40 @@ export default function Home() {
                       <span className="font-bold">
                         {formatarTempo(jogador.tempoPosse || 0)}
                       </span>
-                    </div>
-                  ))}
+                  </div>
+                ))}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
 
-      {/* Modal de falta */}
-      {showFaltaModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-zinc-800 p-4 rounded-lg w-80">
-            <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
+          {/* Modal de falta */}
+          {showFaltaModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-zinc-800 p-4 rounded-lg w-80">
+                <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
             <div className="space-y-2">
               <div className="flex gap-2">
-                <button
-                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
-                  onClick={() => setSelectedFaltaTeam('A')}
-                >
-                  {timeAName}
-                </button>
-                <button
-                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
-                  onClick={() => setSelectedFaltaTeam('B')}
-                >
-                  {timeBName}
-                </button>
-              </div>
-              <div className="space-y-2">
-                {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
                   <button
-                    key={jogador.id}
-                    className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
+                    onClick={() => setSelectedFaltaTeam('A')}
+                  >
+                  {timeAName}
+                  </button>
+                  <button
+                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                    onClick={() => setSelectedFaltaTeam('B')}
+                  >
+                  {timeBName}
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
+                    <button
+                      key={jogador.id}
+                      className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
                     onClick={() => {
                       const tempoAtual = `${minutes}:${formattedSeconds}`;
                       const novaFalta: Falta = {
@@ -1829,19 +1850,19 @@ export default function Home() {
                       }
                       setShowFaltaModal(false);
                     }}
-                  >
-                    {jogador.nome}
-                  </button>
-                ))}
+                    >
+                      {jogador.nome}
+                    </button>
+                  ))}
               </div>
-            </div>
-            <button
-              className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
-              onClick={() => setShowFaltaModal(false)}
-            >
-              Cancelar
-            </button>
-          </div>
+                </div>
+                <button
+                  className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
+                  onClick={() => setShowFaltaModal(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
         </div>
       )}
     </main>

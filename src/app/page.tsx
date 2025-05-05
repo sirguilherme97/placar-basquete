@@ -142,6 +142,7 @@ export default function Home() {
   const [ultimaAtualizacaoPosse, setUltimaAtualizacaoPosse] = useState<number | null>(null);
   const [tempoInicio, setTempoInicio] = useState<number | null>(null);
   const [tempoFim, setTempoFim] = useState<number | null>(null);
+  const [aproveitamento, setAproveitamento] = useState<EstadoJogo['aproveitamento'] | null>(null);
 
   function StartSound() {
     new Audio("/apito.webm").play();
@@ -377,6 +378,9 @@ export default function Home() {
         if (typeof estado.ultimaAtualizacaoPosse === 'number') setUltimaAtualizacaoPosse(estado.ultimaAtualizacaoPosse);
         if (typeof estado.tempoInicio === 'number') setTempoInicio(estado.tempoInicio);
         if (typeof estado.tempoFim === 'number') setTempoFim(estado.tempoFim);
+        if (estado.aproveitamento) {
+          setAproveitamento(estado.aproveitamento);
+        }
       }
     } catch (error) {
       console.error('Erro ao carregar estado:', error);
@@ -499,6 +503,15 @@ export default function Home() {
     setFaltasA(game.faltas.filter(f => f.time === 'A').length);
     setFaltasB(game.faltas.filter(f => f.time === 'B').length);
     setPausas(game.pausas);
+    
+    // Atualizar aproveitamento
+    const novoAproveitamento: EstadoJogo['aproveitamento'] = {
+      mediaPontosJogador: ((game.pontosA + game.pontosB) / (game.jogadoresA.length + game.jogadoresB.length)).toFixed(1),
+      mediaPontosTimeA: (game.pontosA / game.jogadoresA.length).toFixed(1),
+      mediaPontosTimeB: (game.pontosB / game.jogadoresB.length).toFixed(1)
+    };
+    setAproveitamento(novoAproveitamento);
+    
     setShowGamesModal(false);
   };
 
@@ -609,72 +622,19 @@ export default function Home() {
 
   // Função para calcular estatísticas do jogo
   const getGameStats = (): GameStats => {
-    // Combinar todos os jogos com o jogo atual
-    const todosJogos = [
-      ...games,
-      {
-        id: 'atual',
-        timeAName,
-        timeBName,
-        pontosA: +pontosA,
-        pontosB: +pontosB,
-        jogadoresA,
-        jogadoresB,
-        historicoA,
-        historicoB,
-        faltas,
-        data: new Date().toLocaleString(),
-        pausas,
-        faltasA,
-        faltasB,
-        seconds,
-        isPaused,
-        isGameStarted,
-        posseBola,
-        showPosseBola,
-        ultimaAtualizacaoPosse,
-        tempoInicio,
-        tempoFim
+    // Combinar todos os jogadores
+    const todosJogadores = [...jogadoresA, ...jogadoresB];
+
+    // Calcular jogador mais eficiente
+    const jogadorMaisEficiente = todosJogadores.reduce((maisEficiente, jogador) => {
+      const eficienciaAtual = calcularEficiencia(jogador);
+      if (!maisEficiente || eficienciaAtual > calcularEficiencia(maisEficiente)) {
+        return jogador;
       }
-    ];
+      return maisEficiente;
+    }, null as Jogador | null);
 
-    // Combinar todos os jogadores de todos os jogos
-    const todosJogadores = todosJogos.flatMap(game => [
-      ...game.jogadoresA.map(j => ({ ...j, gameId: game.id })),
-      ...game.jogadoresB.map(j => ({ ...j, gameId: game.id }))
-    ]);
-
-    // Combinar todos os históricos
-    const todosHistoricos = todosJogos.flatMap(game => [
-      ...game.historicoA.map(h => ({ ...h, gameId: game.id, tipo: 'ponto' as const, time: 'A' as const })),
-      ...game.historicoB.map(h => ({ ...h, gameId: game.id, tipo: 'ponto' as const, time: 'B' as const })),
-      ...game.faltas.map(f => ({ ...f, gameId: game.id, tipo: 'falta' as const }))
-    ]);
-
-    // Combinar todas as faltas
-    const todasFaltas = todosJogos.flatMap(game => game.faltas.map(f => ({ ...f, gameId: game.id })));
-
-    // Calcular jogador mais eficiente (considerando todos os jogos)
-    const jogadorMaisEficiente = todosJogadores
-      .filter(j => j.faltas > 0)
-      .reduce((maisEficiente, jogador) => {
-        const pontos = todosHistoricos
-          .filter(h => h.jogadorId === jogador.id && h.gameId === jogador.gameId)
-          .reduce((sum, h) => sum + (h as Ponto).pontos, 0);
-
-        const faltas = todasFaltas
-          .filter(f => f.jogadorId === jogador.id && f.gameId === jogador.gameId)
-          .length;
-
-        const eficiencia = pontos / faltas;
-
-        if (eficiencia > (maisEficiente?.eficiencia || 0)) {
-          return { ...jogador, eficiencia };
-        }
-        return maisEficiente;
-      }, null as (Jogador & { eficiencia: number }) | null);
-
-    // Calcular jogador mais decisivo (considerando apenas o jogo atual)
+    // Calcular jogador mais decisivo
     const jogadorMaisDecisivo = getJogadorMaisDecisivo();
 
     // Calcular maior sequência de pontos por jogador
@@ -682,20 +642,17 @@ export default function Home() {
       let sequenciaAtual = 0;
       let maiorSequencia = 0;
 
-      todosHistoricos
-        .filter(h => h.jogadorId === jogador.id && h.gameId === jogador.gameId)
+      const historico = jogador.time === 'A' ? historicoA : historicoB;
+      historico
+        .filter(p => p.jogadorId === jogador.id)
         .sort((a, b) => {
           const [minA, secA] = a.tempo.split(':').map(Number);
           const [minB, secB] = b.tempo.split(':').map(Number);
           return (minB * 60 + secB) - (minA * 60 + secA);
         })
         .forEach(evento => {
-          if (evento.tipo === 'ponto') {
-            sequenciaAtual++;
-            maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
-          } else {
-            sequenciaAtual = 0;
-          }
+          sequenciaAtual++;
+          maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
         });
 
       return { jogador, sequencia: maiorSequencia };
@@ -710,42 +667,22 @@ export default function Home() {
     let sequenciaAtualA = 0;
     let sequenciaAtualB = 0;
 
-    todosHistoricos
-      .sort((a, b) => {
-        const [minA, secA] = a.tempo.split(':').map(Number);
-        const [minB, secB] = b.tempo.split(':').map(Number);
-        return (minB * 60 + secB) - (minA * 60 + secA);
-      })
-      .forEach(evento => {
-        if (evento.tipo === 'ponto') {
-          if (evento.time === 'A') {
-            sequenciaAtualA++;
-            sequenciaAtualB = 0;
-            sequenciasTimes[0].sequencia = Math.max(sequenciasTimes[0].sequencia, sequenciaAtualA);
-          } else {
-            sequenciaAtualB++;
-            sequenciaAtualA = 0;
-            sequenciasTimes[1].sequencia = Math.max(sequenciasTimes[1].sequencia, sequenciaAtualB);
-          }
-        } else {
-          sequenciaAtualA = 0;
-          sequenciaAtualB = 0;
-        }
-      });
-
-    // Calcular jogador que ficou mais tempo sem falta
-    const ultimaFaltaPorJogador = new Map<string, number>();
-    const tempoSemFalta = new Map<string, number>();
-
-    todasFaltas.forEach((evento, index) => {
-      const key = `${evento.jogadorId}-${evento.gameId}`;
-      ultimaFaltaPorJogador.set(key, index);
+    const historicoCombinado = [...historicoA.map(p => ({ ...p, time: 'A' as const })), ...historicoB.map(p => ({ ...p, time: 'B' as const }))].sort((a, b) => {
+      const [minA, secA] = a.tempo.split(':').map(Number);
+      const [minB, secB] = b.tempo.split(':').map(Number);
+      return (minB * 60 + secB) - (minA * 60 + secA);
     });
 
-    todosJogadores.forEach(jogador => {
-      const key = `${jogador.id}-${jogador.gameId}`;
-      const ultimaFalta = ultimaFaltaPorJogador.get(key);
-      tempoSemFalta.set(key, ultimaFalta === undefined ? todasFaltas.length : todasFaltas.length - ultimaFalta);
+    historicoCombinado.forEach(evento => {
+      if (evento.time === 'A') {
+        sequenciaAtualA++;
+        sequenciaAtualB = 0;
+        sequenciasTimes[0].sequencia = Math.max(sequenciasTimes[0].sequencia, sequenciaAtualA);
+      } else {
+        sequenciaAtualB++;
+        sequenciaAtualA = 0;
+        sequenciasTimes[1].sequencia = Math.max(sequenciasTimes[1].sequencia, sequenciaAtualB);
+      }
     });
 
     return {
@@ -756,25 +693,11 @@ export default function Home() {
       maiorSequenciaTime: sequenciasTimes
         .sort((a, b) => b.sequencia - a.sequencia)[0] || null,
       jogadorMaisFaltoso: todosJogadores
-        .sort((a, b) => {
-          const faltasA = todasFaltas.filter(f => f.jogadorId === a.id && f.gameId === a.gameId).length;
-          const faltasB = todasFaltas.filter(f => f.jogadorId === b.id && f.gameId === b.gameId).length;
-          return faltasB - faltasA;
-        })[0] || null,
+        .sort((a, b) => b.faltas - a.faltas)[0] || null,
       jogadorMaisParticipativo: todosJogadores
-        .sort((a, b) => {
-          const pontosA = todosHistoricos.filter(h => h.jogadorId === a.id && h.gameId === a.gameId).length;
-          const pontosB = todosHistoricos.filter(h => h.jogadorId === b.id && h.gameId === b.gameId).length;
-          const faltasA = todasFaltas.filter(f => f.jogadorId === a.id && f.gameId === a.gameId).length;
-          const faltasB = todasFaltas.filter(f => f.jogadorId === b.id && f.gameId === b.gameId).length;
-          return (pontosB + faltasB) - (pontosA + faltasA);
-        })[0] || null,
+        .sort((a, b) => (b.pontos + b.faltas) - (a.pontos + a.faltas))[0] || null,
       jogadorMaisTempoSemFalta: todosJogadores
-        .sort((a, b) => {
-          const keyA = `${a.id}-${a.gameId}`;
-          const keyB = `${b.id}-${b.gameId}`;
-          return (tempoSemFalta.get(keyB) || 0) - (tempoSemFalta.get(keyA) || 0);
-        })[0] || null
+        .sort((a, b) => (b.tempoPosse || 0) - (a.tempoPosse || 0))[0] || null
     };
   };
 
@@ -1523,62 +1446,42 @@ export default function Home() {
                         <span className="font-bold text-red-500">{getPlayerStats(selectedPlayer).totalFaltas}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Número de Cestas:</span>
-                        <span className="font-bold">{getPlayerStats(selectedPlayer).pontos.length}</span>
+                        <span>Tempo de Posse:</span>
+                        <span className="font-bold">{formatarTempo(selectedPlayer.tempoPosse || 0)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Eficiência:</span>
+                        <span>Pontos por Minuto:</span>
                         <span className="font-bold">
-                          {calcularEficiencia(selectedPlayer).toFixed(1)} pts
+                          {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
                         </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Detalhes da Eficiência:</span>
-                      </div>
-                      <div className="pl-4 space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span>Tempo de Posse:</span>
-                          <span>{formatarTempo(selectedPlayer.tempoPosse || 0)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Cestas de 3pts:</span>
-                          <span>{getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 3).length * 3 * 3} pts</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Cestas de 2pts:</span>
-                          <span>{getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 2).length * 2 * 2} pts</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Lances Livres:</span>
-                          <span>{getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 1).length} pts</span>
-                        </div>
-                        <div className="flex justify-between text-red-500">
-                          <span>Penalidade Faltas:</span>
-                          <span>-{(selectedPlayer.faltas || 0) * 2} pts</span>
-                        </div>
                       </div>
                     </div>
                   </div>
                   <div className="bg-zinc-700 p-4 rounded-lg">
-                    <h3 className="text-xl font-bold mb-2">Distribuição de Pontos</h3>
+                    <h3 className="text-xl font-bold mb-2">Cálculo da Eficiência</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Pontos de 3:</span>
-                        <span className="font-bold">
-                          {getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 3).length} cestas
+                        <span>Pontos por Minuto:</span>
+                        <span className="font-bold text-yellow-500">
+                          {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Pontos de 2:</span>
-                        <span className="font-bold">
-                          {getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 2).length} cestas
+                        <span>Penalidade por Faltas:</span>
+                        <span className="font-bold text-red-500">
+                          -{(selectedPlayer.faltas || 0) * 2} pontos
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Pontos de 1:</span>
+                        <span>Eficiência Final:</span>
                         <span className="font-bold">
-                          {getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 1).length} cestas
+                          {calcularEficiencia(selectedPlayer).toFixed(1)} pts/min
                         </span>
+                      </div>
+                      <div className="mt-4 text-sm text-zinc-400">
+                        <p>Fórmula: (Pontos / Tempo de Posse em minutos) - (Faltas * 2)</p>
+                        <p>Quanto mais pontos em menos tempo, maior a eficiência.</p>
+                        <p>Cada falta reduz 2 pontos da eficiência.</p>
                       </div>
                     </div>
                   </div>
@@ -1624,7 +1527,7 @@ export default function Home() {
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Média de Pontos por Jogador</h4>
                 <p className="text-2xl font-bold text-yellow-500">
-                  {((+pontosA + +pontosB) / (jogadoresA.length + jogadoresB.length)).toFixed(1)}
+                  {aproveitamento?.mediaPontosJogador || ((+pontosA + +pontosB) / (jogadoresA.length + jogadoresB.length)).toFixed(1)}
                 </p>
               </div>
               <div className="bg-zinc-700 p-4 rounded-lg">
@@ -1632,11 +1535,15 @@ export default function Home() {
                 <div className="flex justify-between">
                   <div>
                     <p className="text-sm">{timeAName}</p>
-                    <p className="text-xl font-bold text-red-500">{(+pontosA / jogadoresA.length).toFixed(1)}</p>
+                    <p className="text-xl font-bold text-red-500">
+                      {aproveitamento?.mediaPontosTimeA || (+pontosA / jogadoresA.length).toFixed(1)}
+                    </p>
                   </div>
                   <div>
                     <p className="text-sm">{timeBName}</p>
-                    <p className="text-xl font-bold text-blue-500">{(+pontosB / jogadoresB.length).toFixed(1)}</p>
+                    <p className="text-xl font-bold text-blue-500">
+                      {aproveitamento?.mediaPontosTimeB || (+pontosB / jogadoresB.length).toFixed(1)}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1697,40 +1604,98 @@ export default function Home() {
                 <h4 className="text-lg font-bold mb-2">Jogador Mais Eficiente</h4>
                 {(() => {
                   const jogadorMaisEficiente = getGameStats().jogadorMaisEficiente;
-                  if (!jogadorMaisEficiente) return null;
-                  
+                  if (!jogadorMaisEficiente) return <></>;
+                  const eficiencia = calcularEficiencia(jogadorMaisEficiente);
                   return (
                     <div>
-                      <p className="text-lg font-bold">
-                        {jogadorMaisEficiente.nome}
-                      </p>
-                      <p className="text-sm text-zinc-400">
-                        {calcularEficiencia(jogadorMaisEficiente).toFixed(1)} pts/min
-                      </p>
+                      <p className="text-lg font-bold">{jogadorMaisEficiente.nome}</p>
+                      <p className="text-sm text-zinc-400">{eficiencia.toFixed(1)} pts/min</p>
                       <p className="text-sm text-zinc-400">
                         {jogadorMaisEficiente.pontos} pontos em {formatarTempo(jogadorMaisEficiente.tempoPosse || 0)}
                       </p>
                       {jogadorMaisEficiente.faltas > 0 && (
                         <p className="text-sm text-red-400">
-                          {jogadorMaisEficiente.faltas} falta{jogadorMaisEficiente.faltas > 1 ? 's' : ''}
+                          {jogadorMaisEficiente.faltas} falta{jogadorMaisEficiente.faltas !== 1 ? 's' : ''}
                         </p>
                       )}
                     </div>
                   );
                 })()}
               </div>
+
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Jogador Mais Decisivo</h4>
-                {getJogadorMaisDecisivo() && (
-                  <div>
-                    <p className="text-lg font-bold">
-                      {getJogadorMaisDecisivo()?.nome}
-                    </p>
-                    <p className="text-sm text-zinc-400">
-                      {getJogadorMaisDecisivo()?.pontos} pontos nos últimos 5 minutos
-                    </p>
-                  </div>
-                )}
+                <h4 className="text-lg font-bold mb-2">Jogador com Menos Faltas</h4>
+                {(() => {
+                  const todosJogadores = [...jogadoresA, ...jogadoresB];
+                  const jogadorMenosFaltas = todosJogadores.reduce((menosFaltas, jogador) => {
+                    if (!menosFaltas || jogador.faltas < menosFaltas.faltas) return jogador;
+                    return menosFaltas;
+                  }, null as Jogador | null);
+                  if (!jogadorMenosFaltas) return <></>;
+                  return (
+                    <div>
+                      <p className="text-lg font-bold">{jogadorMenosFaltas.nome}</p>
+                      <p className="text-sm text-zinc-400">{jogadorMenosFaltas.faltas} falta{jogadorMenosFaltas.faltas !== 1 ? 's' : ''}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Jogador com Mais Posse de Bola</h4>
+                {(() => {
+                  const todosJogadores = [...jogadoresA, ...jogadoresB];
+                  const jogadorMaisPosse = todosJogadores.reduce((maisPosse, jogador) => {
+                    if (!maisPosse || (jogador.tempoPosse || 0) > (maisPosse.tempoPosse || 0)) return jogador;
+                    return maisPosse;
+                  }, null as Jogador | null);
+                  if (!jogadorMaisPosse) return <></>;
+                  return (
+                    <div>
+                      <p className="text-lg font-bold">{jogadorMaisPosse.nome}</p>
+                      <p className="text-sm text-zinc-400">{formatarTempo(jogadorMaisPosse.tempoPosse || 0)}</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Maior Cestinha de 3 Pontos</h4>
+                {(() => {
+                  const todosJogadores = [...jogadoresA, ...jogadoresB];
+                  const jogadorMais3pts = todosJogadores.reduce((mais3pts, jogador) => {
+                    const cestas3pts = jogador.time === 'A'
+                      ? historicoA.filter(p => p.jogadorId === jogador.id && p.pontos === 3).length
+                      : historicoB.filter(p => p.jogadorId === jogador.id && p.pontos === 3).length;
+                    if (!mais3pts || cestas3pts > (mais3pts.cestas3pts || 0)) return { ...jogador, cestas3pts };
+                    return mais3pts;
+                  }, null as (Jogador & { cestas3pts: number }) | null);
+                  if (!jogadorMais3pts) return <></>;
+                  return (
+                    <div>
+                      <p className="text-lg font-bold">{jogadorMais3pts.nome}</p>
+                      <p className="text-sm text-zinc-400">{jogadorMais3pts.cestas3pts} cestas de 3 pontos</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Maior Cestinha</h4>
+                {(() => {
+                  const todosJogadores = [...jogadoresA, ...jogadoresB];
+                  const jogadorMaisPontos = todosJogadores.reduce((maisPontos, jogador) => {
+                    if (!maisPontos || jogador.pontos > maisPontos.pontos) return jogador;
+                    return maisPontos;
+                  }, null as Jogador | null);
+                  if (!jogadorMaisPontos) return <></>;
+                  return (
+                    <div>
+                      <p className="text-lg font-bold">{jogadorMaisPontos.nome}</p>
+                      <p className="text-sm text-zinc-400">{jogadorMaisPontos.pontos} pontos</p>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </div>

@@ -232,7 +232,7 @@ export default function Home() {
     const timer = setTimeout(() => {
       setShowPopover(true);
       setIsPaused(true);
-    }, 500);
+    }, 200);
     setLongPressTimer(timer);
   };
 
@@ -491,7 +491,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1">
+              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1 select-none">
                 <div
                   className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
                   onMouseDown={() => handleLongPressStart('A', 3)}
@@ -534,7 +534,7 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1">
+              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1  select-none">
                 <div
                   className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
                   onMouseDown={() => handleLongPressStart('B', 3)}

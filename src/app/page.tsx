@@ -180,6 +180,15 @@ export default function Home() {
     setIsPaused(true);
   }
 
+  // useEffect para salvar pontosA e pontosB individualmente
+  useEffect(() => {
+    localStorage.setItem('pontosA', JSON.stringify(pontosA));
+  }, [pontosA]);
+
+  useEffect(() => {
+    localStorage.setItem('pontosB', JSON.stringify(pontosB));
+  }, [pontosB]);
+
   // Carregar dados do localStorage ao iniciar
   useEffect(() => {
     try {
@@ -268,18 +277,12 @@ export default function Home() {
       reader.onload = (e) => {
         try {
           const dados = JSON.parse(e.target?.result as string);
-
-          // Validar os dados antes de importar
           if (!dados || typeof dados !== 'object') {
             throw new Error('Formato de arquivo inválido');
           }
-
-          // Resetar tudo antes de importar novos dados
           resetarTudo();
-
-          // Importar dados validados
-          if (Array.isArray(dados.jogadoresA)) setJogadoresA(dados.jogadoresA);
-          if (Array.isArray(dados.jogadoresB)) setJogadoresB(dados.jogadoresB);
+          if (Array.isArray(dados.jogadoresA)) setJogadoresA(dados.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
+          if (Array.isArray(dados.jogadoresB)) setJogadoresB(dados.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
           if (Array.isArray(dados.historicoA)) setHistoricoA(dados.historicoA);
           if (Array.isArray(dados.historicoB)) setHistoricoB(dados.historicoB);
           if (Array.isArray(dados.faltas)) setFaltas(dados.faltas);
@@ -290,16 +293,19 @@ export default function Home() {
           if (typeof dados.faltasB === 'number') setFaltasB(dados.faltasB);
           if (typeof dados.pontosA === 'number') setPontosA(dados.pontosA);
           if (typeof dados.pontosB === 'number') setPontosB(dados.pontosB);
-          if (typeof dados.seconds === 'number') setSeconds(dados.seconds);
+          if (typeof dados.seconds === 'number') setSeconds(Math.floor(dados.seconds));
           if (typeof dados.isPaused === 'boolean') setIsPaused(dados.isPaused);
-          if (Array.isArray(dados.games)) setGames(dados.games);
-          if (typeof dados.tempoJogoAtual === 'number') {
-            setTempoInicio(Date.now() - (dados.tempoJogoAtual * 1000));
-          }
-
-          // Salvar estado após importação
+          if (Array.isArray(dados.games)) setGames(dados.games.map(game => ({
+            ...game,
+            tempoJogo: game.tempoJogo || 0,
+            tempoInicio: game.tempoInicio || null,
+            tempoFim: game.tempoFim || null,
+            jogadoresA: game.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
+            jogadoresB: game.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }))
+          })));
+          if (typeof dados.tempoInicio === 'number') setTempoInicio(Math.floor(dados.tempoInicio));
+          if (typeof dados.tempoFim === 'number') setTempoFim(Math.floor(dados.tempoFim));
           salvarEstado();
-
           alert('Dados importados com sucesso!');
         } catch (error) {
           console.error('Erro ao importar dados:', error);
@@ -313,9 +319,12 @@ export default function Home() {
   // Função para salvar estado no localStorage
   const salvarEstado = () => {
     try {
+      // Garantir que todos os tempos estejam em segundos (número)
+      const jogadoresAEmSegundos = jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }));
+      const jogadoresBEmSegundos = jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }));
       const estado: EstadoJogo = {
-        jogadoresA,
-        jogadoresB,
+        jogadoresA: jogadoresAEmSegundos,
+        jogadoresB: jogadoresBEmSegundos,
         historicoA,
         historicoB,
         faltas,
@@ -327,14 +336,14 @@ export default function Home() {
         faltasB,
         pontosA,
         pontosB,
-        seconds,
+        seconds: Math.floor(seconds),
         isPaused,
         isGameStarted,
         posseBola,
         showPosseBola,
         ultimaAtualizacaoPosse,
-        tempoInicio,
-        tempoFim,
+        tempoInicio: tempoInicio ? Math.floor(tempoInicio) : null,
+        tempoFim: tempoFim ? Math.floor(tempoFim) : null,
         aproveitamento: {
           mediaPontosJogador: ((+pontosA + +pontosB) / (jogadoresA.length + jogadoresB.length)).toFixed(1),
           mediaPontosTimeA: (+pontosA / jogadoresA.length).toFixed(1),
@@ -342,6 +351,11 @@ export default function Home() {
         }
       };
       localStorage.setItem('estadoJogo', JSON.stringify(estado));
+      localStorage.setItem('tempoInicio', tempoInicio ? Math.floor(tempoInicio).toString() : '');
+      localStorage.setItem('tempoFim', tempoFim ? Math.floor(tempoFim).toString() : '');
+      localStorage.setItem('pontosA', JSON.stringify(pontosA));
+      localStorage.setItem('pontosB', JSON.stringify(pontosB));
+      localStorage.setItem('seconds', JSON.stringify(Math.floor(seconds)));
       console.log('Estado salvo com sucesso:', estado);
     } catch (error) {
       console.error('Erro ao salvar estado:', error);
@@ -381,6 +395,12 @@ export default function Home() {
         if (estado.aproveitamento) {
           setAproveitamento(estado.aproveitamento);
         }
+      } else {
+        // Tentar carregar tempoInicio e tempoFim separadamente se existirem
+        const tInicio = localStorage.getItem('tempoInicio');
+        const tFim = localStorage.getItem('tempoFim');
+        if (tInicio) setTempoInicio(Number(tInicio));
+        if (tFim) setTempoFim(Number(tFim));
       }
     } catch (error) {
       console.error('Erro ao carregar estado:', error);
@@ -391,8 +411,8 @@ export default function Home() {
   // Função para calcular o tempo total de jogo em segundos
   const calcularTempoJogo = () => {
     if (!tempoInicio) return 0;
-    if (tempoFim) return tempoFim - tempoInicio;
-    return Date.now() - tempoInicio;
+    if (tempoFim) return (tempoFim - tempoInicio) / 1000; // Converter para segundos
+    return (Date.now() - tempoInicio) / 1000; // Converter para segundos
   };
 
   // Função para calcular eficiência do jogador
@@ -452,7 +472,7 @@ export default function Home() {
 
   // Função para salvar game atual
   const salvarGame = () => {
-    const tempoJogo = calcularTempoJogo() / 1000; // Converter para segundos
+    const tempoJogo = calcularTempoJogo(); // Em segundos
     const novoGame: Game = {
       id: Date.now().toString(),
       timeAName,
@@ -484,7 +504,6 @@ export default function Home() {
       tempoFim,
       tempoJogo
     };
-
     setGames([...games, novoGame]);
     salvarEstado();
   };
@@ -560,14 +579,18 @@ export default function Home() {
 
   // Função para exportar dados do localStorage
   const exportarDados = () => {
-    const tempoJogo = calcularTempoJogo() / 1000; // Converter para segundos
+    const tempoJogo = calcularTempoJogo(); // Em segundos
     const dados = {
       games: games.map(game => ({
         ...game,
-        tempoJogo: game.tempoJogo || 0
+        tempoJogo: game.tempoJogo || 0,
+        tempoInicio: game.tempoInicio || null,
+        tempoFim: game.tempoFim || null,
+        jogadoresA: game.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
+        jogadoresB: game.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }))
       })),
-      jogadoresA,
-      jogadoresB,
+      jogadoresA: jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
+      jogadoresB: jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
       historicoA,
       historicoB,
       faltas,
@@ -577,9 +600,10 @@ export default function Home() {
       faltasA,
       faltasB,
       dataExportacao: new Date().toLocaleString(),
-      tempoJogoAtual: tempoJogo
+      tempoJogoAtual: Math.floor(tempoJogo),
+      tempoInicio: tempoInicio ? Math.floor(tempoInicio) : null,
+      tempoFim: tempoFim ? Math.floor(tempoFim) : null
     };
-
     const dadosJSON = JSON.stringify(dados, null, 2);
     const blob = new Blob([dadosJSON], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -777,6 +801,9 @@ export default function Home() {
     setIsPaused(!isPaused);
     if (!isGameStarted) {
       setIsGameStarted(true);
+      if (!tempoInicio) {
+        setTempoInicio(Date.now()); // Salva apenas no primeiro play
+      }
     }
   };
 
@@ -860,28 +887,27 @@ export default function Home() {
   // useEffect para controlar a contagem regressiva do timer
   useEffect(() => {
     if (!isPaused && seconds > 0) {
-      if (!tempoInicio) {
-        setTempoInicio(Date.now());
-      }
       const timer = setTimeout(() => {
         setSeconds(seconds - 1);
         if (seconds === 1) {
-          setTempoFim(Date.now());
+          if (!tempoFim) {
+            setTempoFim(Date.now()); // Salva apenas quando chega a zero
+          }
         }
       }, 1000);
-
       return () => clearTimeout(timer);
     }
-  }, [isPaused, seconds, tempoInicio]);
+  }, [isPaused, seconds, tempoFim]);
 
-  // Função para formatar o tempo em HH:mm:ss
+  // Função para formatar o tempo em MM:SS ou apenas segundos
   const formatarTempo = (segundos: number) => {
-    const segundosInteiro = Math.floor(segundos); // Arredonda para baixo
-    const horas = Math.floor(segundosInteiro / 3600);
-    const minutos = Math.floor((segundosInteiro % 3600) / 60);
+    const segundosInteiro = Math.floor(segundos);
+    if (segundosInteiro < 60) {
+      return `${segundosInteiro}s`;
+    }
+    const minutos = Math.floor(segundosInteiro / 60);
     const segundosRestantes = segundosInteiro % 60;
-
-    return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
+    return `${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
   };
 
   // Atualizar useEffect para salvar estado
@@ -1707,7 +1733,7 @@ export default function Home() {
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Tempo de Jogo</h4>
                 <p className="text-2xl font-bold text-yellow-500">
-                  {formatarTempo(calcularTempoJogo() / 1000)}
+                  {formatarTempo(calcularTempoJogo())}
                 </p>
               </div>
             </div>

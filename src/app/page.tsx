@@ -2,19 +2,20 @@
 import { useEffect, useState } from 'react';
 import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
-import { GiWhistle } from "react-icons/gi";
+import { GiWhistle, GiCardPlay } from "react-icons/gi";
 
 interface Jogador {
   id: number;
   nome: string;
   pontos: number;
   faltas: number;
+  eficiencia?: number;
   time: 'A' | 'B';
 }
 
 interface Falta {
-  jogadorId: number;
   time: 'A' | 'B';
+  jogadorId: number;
   tempo: string;
 }
 
@@ -49,6 +50,22 @@ interface HistoricoCombinado {
   pontos?: number;
 }
 
+interface GameStats {
+  jogadorMaisEficiente: Jogador | null;
+  jogadorMaisDecisivo: Jogador | null;
+  maiorSequenciaPontos: {
+    jogador: Jogador;
+    sequencia: number;
+  } | null;
+  maiorSequenciaTime: {
+    time: 'A' | 'B';
+    sequencia: number;
+  } | null;
+  jogadorMaisFaltoso: Jogador | null;
+  jogadorMaisParticipativo: Jogador | null;
+  jogadorMaisTempoSemFalta: Jogador | null;
+}
+
 export default function Home() {
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
   const [isPaused, setIsPaused] = useState(true); // Estado para controlar a pausa do timer
@@ -66,7 +83,7 @@ export default function Home() {
   const [showAddPlayerPopover, setShowAddPlayerPopover] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [teamToAddPlayer, setTeamToAddPlayer] = useState<'A' | 'B'>('A');
-  const [activeTab, setActiveTab] = useState<'placar' | 'historico'>('placar');
+  const [activeTab, setActiveTab] = useState<'placar' | 'informacoes' | 'estatisticas'>('placar');
   const [games, setGames] = useState<Game[]>([]);
   const [showGamesModal, setShowGamesModal] = useState(false);
   const [historicoView, setHistoricoView] = useState<'times' | 'cronologico'>('times');
@@ -77,11 +94,13 @@ export default function Home() {
   const [faltas, setFaltas] = useState<Falta[]>([]);
   const [showFaltaModal, setShowFaltaModal] = useState(false);
   const [selectedFaltaTeam, setSelectedFaltaTeam] = useState<'A' | 'B'>('A');
+  const [selectedPlayer, setSelectedPlayer] = useState<Jogador | null>(null);
+  const [showPlayerDetails, setShowPlayerDetails] = useState(false);
 
   function StartSound() {
     new Audio("/apito.webm").play();
     if (isGameStarted) {
-      setActiveTab('historico');
+      setActiveTab('informacoes');
       setShowFaltaModal(true);
     }
     setIsPaused(true);
@@ -590,6 +609,110 @@ export default function Home() {
     }
   };
 
+  // Função para calcular estatísticas do jogador
+  const getPlayerStats = (jogador: Jogador) => {
+    const pontos = jogador.time === 'A' 
+      ? historicoA.filter(p => p.jogadorId === jogador.id)
+      : historicoB.filter(p => p.jogadorId === jogador.id);
+    
+    const jogadorFaltas = faltas.filter((f: Falta) => f.jogadorId === jogador.id && f.time === jogador.time);
+    
+    return {
+      pontos,
+      faltas: jogadorFaltas,
+      totalPontos: pontos.reduce((sum, p) => sum + p.pontos, 0),
+      totalFaltas: jogadorFaltas.length
+    };
+  };
+
+  // Função para mostrar detalhes do jogador
+  const showPlayerInfo = (jogador: Jogador) => {
+    setSelectedPlayer(jogador);
+    setShowPlayerDetails(true);
+  };
+
+  // Função para calcular estatísticas do jogo
+  const getGameStats = (): GameStats => {
+    const todosJogadores = [...jogadoresA, ...jogadoresB];
+    const historicoCombinado = getHistoricoCombinado();
+    
+    // Calcular maior sequência de pontos por jogador
+    const sequenciasJogadores = todosJogadores.map(jogador => {
+      let sequenciaAtual = 0;
+      let maiorSequencia = 0;
+      
+      historicoCombinado.forEach(evento => {
+        if (evento.tipo === 'ponto' && evento.jogadorId === jogador.id) {
+          sequenciaAtual++;
+          maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
+        } else {
+          sequenciaAtual = 0;
+        }
+      });
+      
+      return { jogador, sequencia: maiorSequencia };
+    });
+
+    // Calcular maior sequência de pontos por time
+    const sequenciasTimes = [
+      { time: 'A' as const, sequencia: 0 },
+      { time: 'B' as const, sequencia: 0 }
+    ];
+    
+    let sequenciaAtualA = 0;
+    let sequenciaAtualB = 0;
+    
+    historicoCombinado.forEach(evento => {
+      if (evento.tipo === 'ponto') {
+        if (evento.time === 'A') {
+          sequenciaAtualA++;
+          sequenciaAtualB = 0;
+          sequenciasTimes[0].sequencia = Math.max(sequenciasTimes[0].sequencia, sequenciaAtualA);
+        } else {
+          sequenciaAtualB++;
+          sequenciaAtualA = 0;
+          sequenciasTimes[1].sequencia = Math.max(sequenciasTimes[1].sequencia, sequenciaAtualB);
+        }
+      } else {
+        sequenciaAtualA = 0;
+        sequenciaAtualB = 0;
+      }
+    });
+
+    // Calcular jogador que ficou mais tempo sem falta
+    const ultimaFaltaPorJogador = new Map<number, number>();
+    const tempoSemFalta = new Map<number, number>();
+    
+    historicoCombinado.forEach((evento, index) => {
+      if (evento.tipo === 'falta') {
+        ultimaFaltaPorJogador.set(evento.jogadorId, index);
+      }
+    });
+    
+    todosJogadores.forEach(jogador => {
+      const ultimaFalta = ultimaFaltaPorJogador.get(jogador.id);
+      tempoSemFalta.set(jogador.id, ultimaFalta === undefined ? historicoCombinado.length : historicoCombinado.length - ultimaFalta);
+    });
+
+    return {
+      jogadorMaisEficiente: todosJogadores
+        .filter(j => j.faltas > 0)
+        .sort((a, b) => (b.pontos / b.faltas) - (a.pontos / a.faltas))[0] || null,
+      jogadorMaisDecisivo: todosJogadores
+        .sort((a, b) => b.pontos - a.pontos)[0] || null,
+      maiorSequenciaPontos: sequenciasJogadores
+        .sort((a, b) => b.sequencia - a.sequencia)[0] || null,
+      maiorSequenciaTime: sequenciasTimes
+        .sort((a, b) => b.sequencia - a.sequencia)[0] || null,
+      jogadorMaisFaltoso: todosJogadores
+        .sort((a, b) => b.faltas - a.faltas)[0] || null,
+      jogadorMaisParticipativo: todosJogadores
+        .sort((a, b) => (b.pontos + b.faltas) - (a.pontos + a.faltas))[0] || null,
+      jogadorMaisTempoSemFalta: todosJogadores
+        .sort((a, b) => (tempoSemFalta.get(b.id) || 0) - (tempoSemFalta.get(a.id) || 0))[0] || null
+    };
+  };
+
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
       {/* Botão fixo para salvar game */}
@@ -682,10 +805,16 @@ export default function Home() {
           Placar
         </button>
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'historico' ? 'bg-blue-500' : 'bg-zinc-700'}`}
-          onClick={() => setActiveTab('historico')}
+          className={`px-4 py-2 rounded ${activeTab === 'informacoes' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+          onClick={() => setActiveTab('informacoes')}
         >
-          Histórico
+          Informações
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${activeTab === 'estatisticas' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+          onClick={() => setActiveTab('estatisticas')}
+        >
+          Estatísticas
         </button>
       </div>
 
@@ -879,11 +1008,11 @@ export default function Home() {
             </div>
           )}
         </>
-      ) : (
+      ) : activeTab === 'informacoes' ? (
         <div className="mt-8 p-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl font-bold">Histórico de Pontos</h2>
+              <h2 className="text-2xl font-bold">Informações do Jogo</h2>
               <div className="flex gap-2">
                 <button
                   className={`px-3 py-1 rounded ${historicoView === 'times' ? 'bg-blue-500' : 'bg-zinc-700'}`}
@@ -907,103 +1036,72 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Estatísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-zinc-800 p-4 rounded-lg">
-              <h3 className="text-xl font-bold mb-2">Faltas</h3>
-              <div className="flex justify-between items-center">
-                <div className="text-red-500">
-                  <p className="text-sm">{timeAName}</p>
-                  <p className="text-2xl font-bold">{faltasA}</p>
-                </div>
-                <div className="text-blue-500">
-                  <p className="text-sm">{timeBName}</p>
-                  <p className="text-2xl font-bold">{faltasB}</p>
-                </div>
-              </div>
-              <div className="text-center mt-4">
-                <p className="text-sm text-zinc-400">Toque no apito para registrar falta</p>
-              </div>
-            </div>
-
-            <div className="bg-zinc-800 p-4 rounded-lg">
-              <h3 className="text-xl font-bold mb-2">Pausas</h3>
-              <div className="text-center">
-                <p className="text-4xl font-bold text-yellow-500">{pausas}</p>
-                <p className="text-sm text-zinc-400 mt-2">Pausas são contadas ao pausar o jogo</p>
-              </div>
-            </div>
-
-            <div className="bg-zinc-800 p-4 rounded-lg">
-              <h3 className="text-xl font-bold mb-2">Top 3 MVP</h3>
-              {getTop3MVP().length > 0 ? (
-                <div className="space-y-2">
-                  {getTop3MVP().map((jogador, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <div>
-                        <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
-                        <p className="text-sm text-zinc-400">
-                          {jogador.time === 'A' ? timeAName : timeBName}
-                        </p>
-                      </div>
-                      <p className="text-xl font-bold">{jogador.pontos} pts</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
-              )}
-            </div>
-          </div>
-
           {historicoView === 'times' ? (
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <h3 className="text-xl font-bold mb-2">{timeAName}</h3>
-                <div className="space-y-2">
-                  {historicoA
-                    .sort((a, b) => {
-                      const [minA, secA] = a.tempo.split(':').map(Number);
-                      const [minB, secB] = b.tempo.split(':').map(Number);
-                      return (minB * 60 + secB) - (minA * 60 + secA);
-                    })
-                    .map((ponto, index) => {
-                      const jogador = jogadoresA.find(j => j.id === ponto.jogadorId);
-                      return (
-                        <div key={index} className="bg-zinc-800 p-3 rounded flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <span className="text-yellow-500 font-bold">+{ponto.pontos}</span>
-                            <span className="text-zinc-400">|</span>
-                            <span className="font-medium">{jogador?.nome}</span>
+                <div className="space-y-4">
+                  {jogadoresA.map((jogador) => {
+                    const stats = getPlayerStats(jogador);
+                    return (
+                      <div 
+                        key={jogador.id} 
+                        className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
+                        onClick={() => showPlayerInfo(jogador)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-lg font-bold">{jogador.nome}</p>
+                            {stats.totalFaltas > 0 && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <GiCardPlay className="text-yellow-500" size={20} />
+                                <span className="text-sm text-zinc-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
+                              </div>
+                            )}
                           </div>
-                          <span className="text-sm text-zinc-400">{ponto.tempo}</span>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
+                            <p className="text-sm text-zinc-400">
+                              {stats.pontos.length} {stats.pontos.length === 1 ? 'cesta' : 'cestas'}
+                            </p>
+                          </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
               <div>
                 <h3 className="text-xl font-bold mb-2">{timeBName}</h3>
-                <div className="space-y-2">
-                  {historicoB
-                    .sort((a, b) => {
-                      const [minA, secA] = a.tempo.split(':').map(Number);
-                      const [minB, secB] = b.tempo.split(':').map(Number);
-                      return (minB * 60 + secB) - (minA * 60 + secA);
-                    })
-                    .map((ponto, index) => {
-                      const jogador = jogadoresB.find(j => j.id === ponto.jogadorId);
-                      return (
-                        <div key={index} className="bg-zinc-800 p-3 rounded flex justify-between items-center">
-                          <div className="flex items-center gap-2">
-                            <span className="text-yellow-500 font-bold">+{ponto.pontos}</span>
-                            <span className="text-zinc-400">|</span>
-                            <span className="font-medium">{jogador?.nome}</span>
+                <div className="space-y-4">
+                  {jogadoresB.map((jogador) => {
+                    const stats = getPlayerStats(jogador);
+                    return (
+                      <div 
+                        key={jogador.id} 
+                        className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
+                        onClick={() => showPlayerInfo(jogador)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <p className="text-lg font-bold">{jogador.nome}</p>
+                            {stats.totalFaltas > 0 && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <GiCardPlay className="text-yellow-500" size={20} />
+                                <span className="text-sm text-zinc-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
+                              </div>
+                            )}
                           </div>
-                          <span className="text-sm text-zinc-400">{ponto.tempo}</span>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
+                            <p className="text-sm text-zinc-400">
+                              {stats.pontos.length} {stats.pontos.length === 1 ? 'cesta' : 'cestas'}
+                            </p>
+                          </div>
                         </div>
-                      );
-                    })}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -1012,7 +1110,7 @@ export default function Home() {
               <div className="space-y-2">
                 {getHistoricoCombinado().map((item, index) => (
                   <div key={index} className={`${item.tipo === 'ponto' ? 'bg-zinc-800' : 'bg-zinc-800'} p-3 rounded w-full flex justify-between items-center`}>
-                    <div className="flex items-center gap-2 ">
+                    <div className="flex items-center gap-2">
                       {item.tipo === 'ponto' ? (
                         <>
                           <span className="text-yellow-500 font-bold">+{(item as Ponto).pontos}</span>
@@ -1038,45 +1136,226 @@ export default function Home() {
             </div>
           )}
 
-          {/* Modal de falta */}
-          {showFaltaModal && (
+          {/* Modal de detalhes do jogador */}
+          {showPlayerDetails && selectedPlayer && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-zinc-800 p-4 rounded-lg w-80">
-                <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
-                <div className="flex justify-center gap-2 mb-4">
+              <div className="bg-zinc-800 p-6 rounded-lg w-11/12 max-w-2xl">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-2xl font-bold">{selectedPlayer.nome}</h2>
                   <button
-                    className={`px-3 py-1 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
-                    onClick={() => setSelectedFaltaTeam('A')}
+                    className="p-2 bg-red-500 rounded hover:bg-red-600"
+                    onClick={() => setShowPlayerDetails(false)}
                   >
-                    {timeAName}
-                  </button>
-                  <button
-                    className={`px-3 py-1 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
-                    onClick={() => setSelectedFaltaTeam('B')}
-                  >
-                    {timeBName}
+                    Fechar
                   </button>
                 </div>
-                <div className="space-y-2">
-                  {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
-                    <button
-                      key={jogador.id}
-                      className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
-                      onClick={() => registrarFalta(jogador.id)}
-                    >
-                      {jogador.nome}
-                    </button>
-                  ))}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-zinc-700 p-4 rounded-lg">
+                    <h3 className="text-xl font-bold mb-2">Estatísticas Gerais</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Time:</span>
+                        <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total de Pontos:</span>
+                        <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Total de Faltas:</span>
+                        <span className="font-bold text-red-500">{getPlayerStats(selectedPlayer).totalFaltas}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Número de Cestas:</span>
+                        <span className="font-bold">{getPlayerStats(selectedPlayer).pontos.length}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Eficiência (Pontos/Falta):</span>
+                        <span className="font-bold">
+                          {selectedPlayer.faltas > 0 
+                            ? (selectedPlayer.pontos / selectedPlayer.faltas).toFixed(1)
+                            : selectedPlayer.pontos > 0 ? '∞' : '0.0'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-zinc-700 p-4 rounded-lg">
+                    <h3 className="text-xl font-bold mb-2">Distribuição de Pontos</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Pontos de 3:</span>
+                        <span className="font-bold">
+                          {getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 3).length} cestas
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Pontos de 2:</span>
+                        <span className="font-bold">
+                          {getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 2).length} cestas
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Pontos de 1:</span>
+                        <span className="font-bold">
+                          {getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 1).length} cestas
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
-                  onClick={() => setShowFaltaModal(false)}
-                >
-                  Cancelar
-                </button>
+                <div className="mt-4">
+                  <h3 className="text-xl font-bold mb-2">Histórico de Pontos</h3>
+                  <div className="bg-zinc-700 p-4 rounded-lg">
+                    <div className="space-y-2">
+                      {getPlayerStats(selectedPlayer).pontos.map((ponto, index) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span className="text-yellow-500 font-bold">+{ponto.pontos}</span>
+                          <span className="text-zinc-400">{ponto.tempo}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-xl font-bold mb-2">Histórico de Faltas</h3>
+                  <div className="bg-zinc-700 p-4 rounded-lg">
+                    <div className="space-y-2">
+                      {getPlayerStats(selectedPlayer).faltas.map((falta, index) => (
+                        <div key={index} className="flex justify-between items-center">
+                          <span className="text-red-500 font-bold">Falta</span>
+                          <span className="text-zinc-400">{falta.tempo}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
+        </div>
+      ) : (
+        <div className="mt-8 p-4">
+          <h2 className="text-2xl font-bold mb-6">Estatísticas Detalhadas</h2>
+          
+          {/* Aproveitamento */}
+          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
+            <h3 className="text-xl font-bold mb-4">Aproveitamento</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Média de Pontos por Jogador</h4>
+                <p className="text-2xl font-bold text-yellow-500">
+                  {((+pontosA + +pontosB) / (jogadoresA.length + jogadoresB.length)).toFixed(1)}
+                </p>
+              </div>
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Média de Pontos por Time</h4>
+                <div className="flex justify-between">
+                  <div>
+                    <p className="text-sm">{timeAName}</p>
+                    <p className="text-xl font-bold text-red-500">{(+pontosA / jogadoresA.length).toFixed(1)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm">{timeBName}</p>
+                    <p className="text-xl font-bold text-blue-500">{(+pontosB / jogadoresB.length).toFixed(1)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Faltas e Pausas */}
+          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
+            <h3 className="text-xl font-bold mb-4">Faltas e Pausas</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Faltas</h4>
+                <div className="flex justify-between">
+                  <div>
+                    <p className="text-sm">{timeAName}</p>
+                    <p className="text-xl font-bold text-red-500">{faltasA}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm">{timeBName}</p>
+                    <p className="text-xl font-bold text-blue-500">{faltasB}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Pausas</h4>
+                <p className="text-2xl font-bold text-yellow-500">{pausas}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Top 3 MVP */}
+          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
+            <h3 className="text-xl font-bold mb-4">Top 3 MVP</h3>
+            {getTop3MVP().length > 0 ? (
+              <div className="space-y-2">
+                {getTop3MVP().map((jogador, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <div>
+                      <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
+                      <p className="text-sm text-zinc-400">
+                        {jogador.time === 'A' ? timeAName : timeBName}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold">{jogador.pontos} pts</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
+            )}
+          </div>
+
+          {/* Destaques */}
+          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
+            <h3 className="text-xl font-bold mb-4">Destaques</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Jogador Mais Eficiente</h4>
+                {getGameStats().jogadorMaisEficiente && (
+                  <div>
+                    <p className="text-lg font-bold">
+                      {getGameStats().jogadorMaisEficiente?.nome}
+                    </p>
+                    <p className="text-sm text-zinc-400">
+                      {getGameStats().jogadorMaisEficiente ? 
+                        ((getGameStats().jogadorMaisEficiente?.pontos || 0) / (getGameStats().jogadorMaisEficiente?.faltas || 1)).toFixed(1) : 
+                        '0.0'} pts/falta
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Jogador Mais Decisivo</h4>
+                {getGameStats().jogadorMaisDecisivo && (
+                  <div>
+                    <p className="text-lg font-bold">
+                      {getGameStats().jogadorMaisDecisivo?.nome}
+                    </p>
+                    <p className="text-sm text-zinc-400">
+                      {getPlayerStats(getGameStats().jogadorMaisDecisivo!).totalPontos} pontos nos últimos 5 minutos
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Outros */}
+          <div className="bg-zinc-800 p-4 rounded-lg">
+            <h3 className="text-xl font-bold mb-4">Outros</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Tempo de Jogo</h4>
+                <p className="text-2xl font-bold text-yellow-500">
+                  {Math.floor((300 - seconds) / 60)}:{((300 - seconds) % 60).toString().padStart(2, '0')}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </main>

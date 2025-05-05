@@ -11,6 +11,7 @@ interface Jogador {
   faltas: number;
   eficiencia?: number;
   time: 'A' | 'B';
+  tempoPosse?: number; // Tempo em segundos que o jogador teve a posse
 }
 
 interface Falta {
@@ -96,6 +97,9 @@ export default function Home() {
   const [selectedFaltaTeam, setSelectedFaltaTeam] = useState<'A' | 'B'>('A');
   const [selectedPlayer, setSelectedPlayer] = useState<Jogador | null>(null);
   const [showPlayerDetails, setShowPlayerDetails] = useState(false);
+  const [posseBola, setPosseBola] = useState<{time: 'A' | 'B', jogadorId: number} | null>(null);
+  const [showPosseBola, setShowPosseBola] = useState(false);
+  const [ultimaAtualizacaoPosse, setUltimaAtualizacaoPosse] = useState<number | null>(null);
 
   function StartSound() {
     new Audio("/apito.webm").play();
@@ -713,6 +717,41 @@ export default function Home() {
     };
   };
 
+  // Função para lidar com o toque e segurar no jogador
+  const handleTouchStart = (jogador: Jogador) => {
+    setShowPosseBola(true);
+    setPosseBola({ time: jogador.time, jogadorId: jogador.id });
+  };
+
+  const handleTouchEnd = () => {
+    setShowPosseBola(false);
+  };
+
+  // Atualizar tempo de posse
+  useEffect(() => {
+    if (posseBola && showPosseBola && !isPaused) {
+      const agora = Date.now();
+      if (ultimaAtualizacaoPosse) {
+        const tempoDecorrido = (agora - ultimaAtualizacaoPosse) / 1000; // Converter para segundos
+        
+        if (posseBola.time === 'A') {
+          setJogadoresA(jogadoresA.map(j => 
+            j.id === posseBola.jogadorId 
+              ? { ...j, tempoPosse: (j.tempoPosse || 0) + tempoDecorrido }
+              : j
+          ));
+        } else {
+          setJogadoresB(jogadoresB.map(j => 
+            j.id === posseBola.jogadorId 
+              ? { ...j, tempoPosse: (j.tempoPosse || 0) + tempoDecorrido }
+              : j
+          ));
+        }
+      }
+      setUltimaAtualizacaoPosse(agora);
+    }
+  }, [posseBola, showPosseBola, isPaused]);
+
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
       {/* Botão fixo para salvar game */}
@@ -927,8 +966,57 @@ export default function Home() {
               </div>
             ) : (
               <div className='flex flex-col pt-10 items-center justify-center'>
-                <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
-                <GiWhistle onClick={StartSound} size={120} />
+                <div className="flex gap-4 mb-4">
+                  {/* Boxes dos jogadores do Time A */}
+                  <div className="flex flex-col gap-2">
+                    {jogadoresA.map((jogador) => (
+                      <div
+                        key={jogador.id}
+                        className={`p-2 rounded cursor-pointer transition-all ${
+                          posseBola?.jogadorId === jogador.id && showPosseBola
+                            ? 'bg-yellow-500 text-zinc-900'
+                            : 'bg-zinc-800 hover:bg-white hover:text-red-500'
+                        }`}
+                        onTouchStart={() => handleTouchStart(jogador)}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseDown={() => handleTouchStart(jogador)}
+                        onMouseUp={handleTouchEnd}
+                        onMouseLeave={handleTouchEnd}
+                      >
+                        <p className="font-bold">{jogador.nome}</p>
+                        <p className="text-sm text-zinc-400">{jogador.pontos} pts</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Botões de controle */}
+                  <div className="flex flex-col items-center">
+                    <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
+                    <GiWhistle onClick={StartSound} size={120} />
+                  </div>
+
+                  {/* Boxes dos jogadores do Time B */}
+                  <div className="flex flex-col gap-2">
+                    {jogadoresB.map((jogador) => (
+                      <div
+                        key={jogador.id}
+                        className={`p-2 rounded cursor-pointer transition-all ${
+                          posseBola?.jogadorId === jogador.id && showPosseBola
+                            ? 'bg-yellow-500 text-zinc-900'
+                            : 'bg-zinc-800 hover:bg-white hover:text-blue-500'
+                        }`}
+                        onTouchStart={() => handleTouchStart(jogador)}
+                        onTouchEnd={handleTouchEnd}
+                        onMouseDown={() => handleTouchStart(jogador)}
+                        onMouseUp={handleTouchEnd}
+                        onMouseLeave={handleTouchEnd}
+                      >
+                        <p className="font-bold">{jogador.nome}</p>
+                        <p className="text-sm text-zinc-400">{jogador.pontos} pts</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1177,6 +1265,12 @@ export default function Home() {
                             : selectedPlayer.pontos > 0 ? '∞' : '0.0'}
                         </span>
                       </div>
+                      <div className="flex justify-between">
+                        <span>Tempo de Posse:</span>
+                        <span className="font-bold">
+                          {Math.floor((selectedPlayer.tempoPosse || 0) / 60)}:{(selectedPlayer.tempoPosse || 0) % 60 < 10 ? '0' : ''}{(selectedPlayer.tempoPosse || 0) % 60}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="bg-zinc-700 p-4 rounded-lg">
@@ -1353,6 +1447,39 @@ export default function Home() {
                 <p className="text-2xl font-bold text-yellow-500">
                   {Math.floor((300 - seconds) / 60)}:{((300 - seconds) % 60).toString().padStart(2, '0')}
                 </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Posse de Bola */}
+          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
+            <h3 className="text-xl font-bold mb-4">Posse de Bola</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">{timeAName}</h4>
+                <div className="space-y-2">
+                  {jogadoresA.map((jogador) => (
+                    <div key={jogador.id} className="flex justify-between items-center">
+                      <span>{jogador.nome}</span>
+                      <span className="font-bold">
+                        {Math.floor((jogador.tempoPosse || 0) / 60)}:{(jogador.tempoPosse || 0) % 60 < 10 ? '0' : ''}{(jogador.tempoPosse || 0) % 60}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">{timeBName}</h4>
+                <div className="space-y-2">
+                  {jogadoresB.map((jogador) => (
+                    <div key={jogador.id} className="flex justify-between items-center">
+                      <span>{jogador.nome}</span>
+                      <span className="font-bold">
+                        {Math.floor((jogador.tempoPosse || 0) / 60)}:{(jogador.tempoPosse || 0) % 60 < 10 ? '0' : ''}{(jogador.tempoPosse || 0) % 60}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

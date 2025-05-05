@@ -290,8 +290,8 @@ export default function Home() {
             throw new Error('Formato de arquivo inválido');
           }
           resetarTudo();
-          if (Array.isArray(dados.jogadoresA)) setJogadoresA(dados.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
-          if (Array.isArray(dados.jogadoresB)) setJogadoresB(dados.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
+          if (Array.isArray(dados.jogadoresA)) setJogadoresA(dados.jogadoresA.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
+          if (Array.isArray(dados.jogadoresB)) setJogadoresB(dados.jogadoresB.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
           if (Array.isArray(dados.historicoA)) setHistoricoA(dados.historicoA);
           if (Array.isArray(dados.historicoB)) setHistoricoB(dados.historicoB);
           if (Array.isArray(dados.faltas)) setFaltas(dados.faltas);
@@ -304,13 +304,13 @@ export default function Home() {
           if (typeof dados.pontosB === 'number') setPontosB(dados.pontosB);
           if (typeof dados.seconds === 'number') setSeconds(Math.floor(dados.seconds));
           if (typeof dados.isPaused === 'boolean') setIsPaused(dados.isPaused);
-          if (Array.isArray(dados.games)) setGames(dados.games.map(game => ({
+          if (Array.isArray(dados.games)) setGames(dados.games.map((game: Game) => ({
             ...game,
             tempoJogo: game.tempoJogo || 0,
             tempoInicio: game.tempoInicio || null,
             tempoFim: game.tempoFim || null,
-            jogadoresA: game.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
-            jogadoresB: game.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }))
+            jogadoresA: game.jogadoresA.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
+            jogadoresB: game.jogadoresB.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }))
           })));
           if (typeof dados.tempoInicio === 'number') setTempoInicio(Math.floor(dados.tempoInicio));
           if (typeof dados.tempoFim === 'number') setTempoFim(Math.floor(dados.tempoFim));

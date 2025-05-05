@@ -7,6 +7,15 @@ import { GiWhistle } from "react-icons/gi";
 interface Jogador {
   id: number;
   nome: string;
+  pontos: number;
+  faltas: number;
+  time: 'A' | 'B';
+}
+
+interface Falta {
+  jogadorId: number;
+  time: 'A' | 'B';
+  tempo: string;
 }
 
 interface Ponto {
@@ -25,7 +34,19 @@ interface Game {
   jogadoresB: Jogador[];
   historicoA: Ponto[];
   historicoB: Ponto[];
+  faltas: Falta[];
   data: string;
+  pausas: number;
+}
+
+interface HistoricoCombinado {
+  time: string;
+  timeName: string;
+  jogador: string | undefined;
+  tipo: 'ponto' | 'falta';
+  jogadorId: number;
+  tempo: string;
+  pontos?: number;
 }
 
 export default function Home() {
@@ -42,7 +63,6 @@ export default function Home() {
   const [showPopover, setShowPopover] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B'>('A');
   const [selectedPoints, setSelectedPoints] = useState(0);
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
   const [showAddPlayerPopover, setShowAddPlayerPopover] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [teamToAddPlayer, setTeamToAddPlayer] = useState<'A' | 'B'>('A');
@@ -50,10 +70,21 @@ export default function Home() {
   const [games, setGames] = useState<Game[]>([]);
   const [showGamesModal, setShowGamesModal] = useState(false);
   const [historicoView, setHistoricoView] = useState<'times' | 'cronologico'>('times');
+  const [faltasA, setFaltasA] = useState(0);
+  const [faltasB, setFaltasB] = useState(0);
+  const [pausas, setPausas] = useState(0);
+  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [faltas, setFaltas] = useState<Falta[]>([]);
+  const [showFaltaModal, setShowFaltaModal] = useState(false);
+  const [selectedFaltaTeam, setSelectedFaltaTeam] = useState<'A' | 'B'>('A');
 
   function StartSound() {
-    new Audio("/apito.webm").play()
-    setIsPaused(true)
+    new Audio("/apito.webm").play();
+    if (isGameStarted) {
+      setActiveTab('historico');
+      setShowFaltaModal(true);
+    }
+    setIsPaused(true);
   }
   // Funções para adicionar pontos ao Time A
   function somarTresA() {
@@ -178,7 +209,13 @@ export default function Home() {
 
   // Função para alternar entre pausar e retomar o timer
   const handleTimerToggle = () => {
-    setIsPaused(!isPaused); // Inverte o estado de pausa do timer ao clicar no botão
+    if (!isPaused && isGameStarted) {
+      setPausas(pausas + 1);
+    }
+    setIsPaused(!isPaused);
+    if (!isGameStarted) {
+      setIsGameStarted(true);
+    }
   };
 
   // Funções para atualizar o nome do Time A e Time B ao alterar o valor dos inputs
@@ -212,7 +249,10 @@ export default function Home() {
 
     const novoJogador: Jogador = {
       id: teamToAddPlayer === 'A' ? jogadoresA.length + 1 : jogadoresB.length + 1,
-      nome: newPlayerName.trim()
+      nome: newPlayerName.trim(),
+      pontos: 0,
+      faltas: 0,
+      time: teamToAddPlayer
     };
 
     if (teamToAddPlayer === 'A') {
@@ -225,22 +265,12 @@ export default function Home() {
     setNewPlayerName('');
   };
 
-  // Funções para lidar com o pressionar e segurar dos botões
-  const handleLongPressStart = (team: 'A' | 'B', points: number) => {
+  // Função para abrir o popover de seleção de jogador
+  const handlePointClick = (team: 'A' | 'B', points: number) => {
     setSelectedTeam(team);
     setSelectedPoints(points);
-    const timer = setTimeout(() => {
-      setShowPopover(true);
-      setIsPaused(true);
-    }, 200);
-    setLongPressTimer(timer);
-  };
-
-  const handleLongPressEnd = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
+    setShowPopover(true);
+    setIsPaused(true);
   };
 
   // Função para registrar ponto com jogador
@@ -255,12 +285,63 @@ export default function Home() {
     if (selectedTeam === 'A') {
       setHistoricoA([...historicoA, novoPonto]);
       setPontosA((+pontosA + selectedPoints).toString());
+      setJogadoresA(jogadoresA.map(j =>
+        j.id === jogadorId ? { ...j, pontos: j.pontos + selectedPoints } : j
+      ));
     } else {
       setHistoricoB([...historicoB, novoPonto]);
       setPontosB((+pontosB + selectedPoints).toString());
+      setJogadoresB(jogadoresB.map(j =>
+        j.id === jogadorId ? { ...j, pontos: j.pontos + selectedPoints } : j
+      ));
     }
 
     setShowPopover(false);
+  };
+
+  // Função para registrar falta
+  const registrarFalta = (jogadorId: number) => {
+    const tempoAtual = `${minutes}:${formattedSeconds}`;
+    const novaFalta: Falta = {
+      jogadorId,
+      time: selectedFaltaTeam,
+      tempo: tempoAtual
+    };
+
+    setFaltas([...faltas, novaFalta]);
+
+    if (selectedFaltaTeam === 'A') {
+      setFaltasA(faltasA + 1);
+      setJogadoresA(jogadoresA.map(j =>
+        j.id === jogadorId ? { ...j, faltas: j.faltas + 1 } : j
+      ));
+    } else {
+      setFaltasB(faltasB + 1);
+      setJogadoresB(jogadoresB.map(j =>
+        j.id === jogadorId ? { ...j, faltas: j.faltas + 1 } : j
+      ));
+    }
+
+    setShowFaltaModal(false);
+  };
+
+  // Função para obter o MVP
+  const getMVP = () => {
+    const todosJogadores = [...jogadoresA, ...jogadoresB];
+    const mvp = todosJogadores.reduce((mvp, jogador) =>
+      jogador.pontos > mvp.pontos ? jogador : mvp
+      , { pontos: 0 } as Jogador);
+
+    return mvp.pontos > 0 ? mvp : null;
+  };
+
+  // Função para obter o top 3 MVP
+  const getTop3MVP = () => {
+    const todosJogadores = [...jogadoresA.map(j => ({ ...j, time: 'A' })), ...jogadoresB.map(j => ({ ...j, time: 'B' }))];
+    return todosJogadores
+      .filter(j => j.pontos > 0)
+      .sort((a, b) => b.pontos - a.pontos)
+      .slice(0, 3);
   };
 
   // Carregar dados do localStorage ao iniciar
@@ -269,17 +350,25 @@ export default function Home() {
     const savedJogadoresB = localStorage.getItem('jogadoresB');
     const savedHistoricoA = localStorage.getItem('historicoA');
     const savedHistoricoB = localStorage.getItem('historicoB');
+    const savedFaltas = localStorage.getItem('faltas');
     const savedTimeAName = localStorage.getItem('timeAName');
     const savedTimeBName = localStorage.getItem('timeBName');
     const savedGames = localStorage.getItem('games');
+    const savedPausas = localStorage.getItem('pausas');
+    const savedFaltasA = localStorage.getItem('faltasA');
+    const savedFaltasB = localStorage.getItem('faltasB');
 
     if (savedJogadoresA) setJogadoresA(JSON.parse(savedJogadoresA));
     if (savedJogadoresB) setJogadoresB(JSON.parse(savedJogadoresB));
     if (savedHistoricoA) setHistoricoA(JSON.parse(savedHistoricoA));
     if (savedHistoricoB) setHistoricoB(JSON.parse(savedHistoricoB));
+    if (savedFaltas) setFaltas(JSON.parse(savedFaltas));
     if (savedTimeAName) setTimeAName(savedTimeAName);
     if (savedTimeBName) setTimeBName(savedTimeBName);
     if (savedGames) setGames(JSON.parse(savedGames));
+    if (savedPausas) setPausas(JSON.parse(savedPausas));
+    if (savedFaltasA) setFaltasA(JSON.parse(savedFaltasA));
+    if (savedFaltasB) setFaltasB(JSON.parse(savedFaltasB));
   }, []);
 
   // Salvar jogadores no localStorage
@@ -299,6 +388,24 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('historicoB', JSON.stringify(historicoB));
   }, [historicoB]);
+
+  // Salvar faltas no localStorage
+  useEffect(() => {
+    localStorage.setItem('faltas', JSON.stringify(faltas));
+  }, [faltas]);
+
+  useEffect(() => {
+    localStorage.setItem('faltasA', JSON.stringify(faltasA));
+  }, [faltasA]);
+
+  useEffect(() => {
+    localStorage.setItem('faltasB', JSON.stringify(faltasB));
+  }, [faltasB]);
+
+  // Salvar pausas no localStorage
+  useEffect(() => {
+    localStorage.setItem('pausas', JSON.stringify(pausas));
+  }, [pausas]);
 
   // Salvar nomes dos times no localStorage
   useEffect(() => {
@@ -326,6 +433,24 @@ export default function Home() {
     setTimeBName("Time B");
     setSeconds(300);
     setIsPaused(true);
+    setFaltasA(0);
+    setFaltasB(0);
+    setFaltas([]);
+    setPausas(0);
+    setIsGameStarted(false);
+
+    // Limpar localStorage
+    localStorage.removeItem('jogadoresA');
+    localStorage.removeItem('jogadoresB');
+    localStorage.removeItem('historicoA');
+    localStorage.removeItem('historicoB');
+    localStorage.removeItem('faltas');
+    localStorage.removeItem('faltasA');
+    localStorage.removeItem('faltasB');
+    localStorage.removeItem('pausas');
+    localStorage.removeItem('timeAName');
+    localStorage.removeItem('timeBName');
+    localStorage.removeItem('games');
   };
 
   // Função para salvar o jogo atual
@@ -340,7 +465,9 @@ export default function Home() {
       jogadoresB,
       historicoA,
       historicoB,
-      data: new Date().toLocaleString()
+      faltas,
+      data: new Date().toLocaleString(),
+      pausas
     };
 
     setGames([...games, novoGame]);
@@ -356,6 +483,10 @@ export default function Home() {
     setJogadoresB(game.jogadoresB);
     setHistoricoA(game.historicoA);
     setHistoricoB(game.historicoB);
+    setFaltas(game.faltas);
+    setFaltasA(game.faltas.filter(f => f.time === 'A').length);
+    setFaltasB(game.faltas.filter(f => f.time === 'B').length);
+    setPausas(game.pausas);
     setShowGamesModal(false);
   };
 
@@ -365,19 +496,33 @@ export default function Home() {
   };
 
   // Função para combinar e ordenar os históricos
-  const getHistoricoCombinado = () => {
-    const historicoCombinado = [
+  const getHistoricoCombinado = (): HistoricoCombinado[] => {
+    const historicoCombinado: HistoricoCombinado[] = [
       ...historicoA.map(ponto => ({
-        ...ponto,
-        time: 'A',
+        time: 'A' as const,
         timeName: timeAName,
-        jogador: jogadoresA.find(j => j.id === ponto.jogadorId)?.nome
+        jogador: jogadoresA.find(j => j.id === ponto.jogadorId)?.nome,
+        tipo: 'ponto' as const,
+        jogadorId: ponto.jogadorId,
+        tempo: ponto.tempo,
+        pontos: ponto.pontos
       })),
       ...historicoB.map(ponto => ({
-        ...ponto,
-        time: 'B',
+        time: 'B' as const,
         timeName: timeBName,
-        jogador: jogadoresB.find(j => j.id === ponto.jogadorId)?.nome
+        jogador: jogadoresB.find(j => j.id === ponto.jogadorId)?.nome,
+        tipo: 'ponto' as const,
+        jogadorId: ponto.jogadorId,
+        tempo: ponto.tempo,
+        pontos: ponto.pontos
+      })),
+      ...faltas.map(falta => ({
+        time: falta.time,
+        timeName: falta.time === 'A' ? timeAName : timeBName,
+        jogador: (falta.time === 'A' ? jogadoresA : jogadoresB).find(j => j.id === falta.jogadorId)?.nome,
+        tipo: 'falta' as const,
+        jogadorId: falta.jogadorId,
+        tempo: falta.tempo
       }))
     ].sort((a, b) => {
       const [minA, secA] = a.tempo.split(':').map(Number);
@@ -389,7 +534,7 @@ export default function Home() {
   };
 
   return (
-    <main className="bg-zinc-900 text-zinc-50 w-screen h-full ">
+    <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
       {/* Botão fixo para salvar game */}
       <button
         className="absolute top-4 right-4 p-3 bg-green-500 rounded-full hover:bg-green-600 z-50"
@@ -493,29 +638,20 @@ export default function Home() {
 
               <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1 select-none">
                 <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
-                  onMouseDown={() => handleLongPressStart('A', 3)}
-                  onMouseUp={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart('A', 3)}
-                  onTouchEnd={handleLongPressEnd}
+                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  onClick={() => handlePointClick('A', 3)}
                 >
                   <p className="w-full h-full flex items-center justify-center">+3</p>
                 </div>
                 <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
-                  onMouseDown={() => handleLongPressStart('A', 2)}
-                  onMouseUp={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart('A', 2)}
-                  onTouchEnd={handleLongPressEnd}
+                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  onClick={() => handlePointClick('A', 2)}
                 >
                   <p className="w-full h-full flex items-center justify-center">+2</p>
                 </div>
                 <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
-                  onMouseDown={() => handleLongPressStart('A', 1)}
-                  onMouseUp={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart('A', 1)}
-                  onTouchEnd={handleLongPressEnd}
+                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  onClick={() => handlePointClick('A', 1)}
                 >
                   <p className="w-full h-full flex items-center justify-center">+1</p>
                 </div>
@@ -534,31 +670,22 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1  select-none">
+              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1 select-none">
                 <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
-                  onMouseDown={() => handleLongPressStart('B', 3)}
-                  onMouseUp={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart('B', 3)}
-                  onTouchEnd={handleLongPressEnd}
+                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  onClick={() => handlePointClick('B', 3)}
                 >
                   <p className="w-full h-full flex items-center justify-center">+3</p>
                 </div>
                 <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
-                  onMouseDown={() => handleLongPressStart('B', 2)}
-                  onMouseUp={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart('B', 2)}
-                  onTouchEnd={handleLongPressEnd}
+                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  onClick={() => handlePointClick('B', 2)}
                 >
                   <p className="w-full h-full flex items-center justify-center">+2</p>
                 </div>
                 <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl"
-                  onMouseDown={() => handleLongPressStart('B', 1)}
-                  onMouseUp={handleLongPressEnd}
-                  onTouchStart={() => handleLongPressStart('B', 1)}
-                  onTouchEnd={handleLongPressEnd}
+                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  onClick={() => handlePointClick('B', 1)}
                 >
                   <p className="w-full h-full flex items-center justify-center">+1</p>
                 </div>
@@ -607,7 +734,7 @@ export default function Home() {
 
           {/* Popover para seleção de jogador */}
           {showPopover && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-zinc-800 p-4 rounded-lg w-80">
                 <h3 className="text-xl font-bold mb-4">Selecione o jogador</h3>
                 <div className="space-y-2">
@@ -708,6 +835,55 @@ export default function Home() {
             </button>
           </div>
 
+          {/* Estatísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="bg-zinc-800 p-4 rounded-lg">
+              <h3 className="text-xl font-bold mb-2">Faltas</h3>
+              <div className="flex justify-between items-center">
+                <div className="text-red-500">
+                  <p className="text-sm">{timeAName}</p>
+                  <p className="text-2xl font-bold">{faltasA}</p>
+                </div>
+                <div className="text-blue-500">
+                  <p className="text-sm">{timeBName}</p>
+                  <p className="text-2xl font-bold">{faltasB}</p>
+                </div>
+              </div>
+              <div className="text-center mt-4">
+                <p className="text-sm text-zinc-400">Toque no apito para registrar falta</p>
+              </div>
+            </div>
+
+            <div className="bg-zinc-800 p-4 rounded-lg">
+              <h3 className="text-xl font-bold mb-2">Pausas</h3>
+              <div className="text-center">
+                <p className="text-4xl font-bold text-yellow-500">{pausas}</p>
+                <p className="text-sm text-zinc-400 mt-2">Pausas são contadas ao pausar o jogo</p>
+              </div>
+            </div>
+
+            <div className="bg-zinc-800 p-4 rounded-lg">
+              <h3 className="text-xl font-bold mb-2">Top 3 MVP</h3>
+              {getTop3MVP().length > 0 ? (
+                <div className="space-y-2">
+                  {getTop3MVP().map((jogador, index) => (
+                    <div key={index} className="flex justify-between items-center">
+                      <div>
+                        <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
+                        <p className="text-sm text-zinc-400">
+                          {jogador.time === 'A' ? timeAName : timeBName}
+                        </p>
+                      </div>
+                      <p className="text-xl font-bold">{jogador.pontos} pts</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
+              )}
+            </div>
+          </div>
+
           {historicoView === 'times' ? (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -762,20 +938,70 @@ export default function Home() {
           ) : (
             <div className="max-w-2xl mx-auto">
               <div className="space-y-2">
-                {getHistoricoCombinado().map((ponto, index) => (
-                  <div key={index} className="bg-zinc-800 p-3 rounded flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-bold ${ponto.time === 'A' ? 'text-red-500' : 'text-blue-500'}`}>
-                        {ponto.timeName}
+                {getHistoricoCombinado().map((item, index) => (
+                  <div key={index} className={`${item.tipo === 'ponto' ? 'bg-zinc-800' : 'bg-zinc-800'} p-3 rounded w-full flex justify-between items-center`}>
+                    <div className="flex items-center gap-2 ">
+                      {item.tipo === 'ponto' ? (
+                        <>
+                          <span className="text-yellow-500 font-bold">+{(item as Ponto).pontos}</span>
+                          <span className="text-zinc-400">|</span>
+                          <span className="font-medium">{item.jogador}</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="text-white font-bold">Falta</span>
+                          <span className="text-zinc-400">|</span>
+                          <span className="font-medium">{item.jogador}</span>
+                        </>
+                      )}
+                      <span className="text-zinc-400">|</span>
+                      <span className={`font-bold ${item.time === 'A' ? 'text-red-500' : 'text-blue-500'}`}>
+                        {item.timeName}
                       </span>
-                      <span className="text-zinc-400">|</span>
-                      <span className="text-yellow-500 font-bold">+{ponto.pontos}</span>
-                      <span className="text-zinc-400">|</span>
-                      <span className="font-medium">{ponto.jogador}</span>
                     </div>
-                    <span className="text-sm text-zinc-400">{ponto.tempo}</span>
+                    <span className="text-base font-bold text-zinc-300">{item.tempo}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Modal de falta */}
+          {showFaltaModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-zinc-800 p-4 rounded-lg w-80">
+                <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
+                <div className="flex justify-center gap-2 mb-4">
+                  <button
+                    className={`px-3 py-1 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
+                    onClick={() => setSelectedFaltaTeam('A')}
+                  >
+                    {timeAName}
+                  </button>
+                  <button
+                    className={`px-3 py-1 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                    onClick={() => setSelectedFaltaTeam('B')}
+                  >
+                    {timeBName}
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
+                    <button
+                      key={jogador.id}
+                      className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                      onClick={() => registrarFalta(jogador.id)}
+                    >
+                      {jogador.nome}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
+                  onClick={() => setShowFaltaModal(false)}
+                >
+                  Cancelar
+                </button>
               </div>
             </div>
           )}

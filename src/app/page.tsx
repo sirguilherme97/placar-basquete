@@ -47,6 +47,8 @@ interface Game {
   posseBola: {time: 'A' | 'B', jogadorId: number} | null;
   showPosseBola: boolean;
   ultimaAtualizacaoPosse: number | null;
+  tempoInicio: number | null;
+  tempoFim: number | null;
 }
 
 interface HistoricoCombinado {
@@ -73,6 +75,35 @@ interface GameStats {
   jogadorMaisFaltoso: Jogador | null;
   jogadorMaisParticipativo: Jogador | null;
   jogadorMaisTempoSemFalta: Jogador | null;
+}
+
+interface EstadoJogo {
+  jogadoresA: Jogador[];
+  jogadoresB: Jogador[];
+  historicoA: Ponto[];
+  historicoB: Ponto[];
+  faltas: Falta[];
+  timeAName: string;
+  timeBName: string;
+  games: Game[];
+  pausas: number;
+  faltasA: number;
+  faltasB: number;
+  pontosA: number;
+  pontosB: number;
+  seconds: number;
+  isPaused: boolean;
+  isGameStarted: boolean;
+  posseBola: {time: 'A' | 'B', jogadorId: number} | null;
+  showPosseBola: boolean;
+  ultimaAtualizacaoPosse: number | null;
+  tempoInicio: number | null;
+  tempoFim: number | null;
+  aproveitamento: {
+    mediaPontosJogador: string;
+    mediaPontosTimeA: string;
+    mediaPontosTimeB: string;
+  };
 }
 
 export default function Home() {
@@ -108,6 +139,8 @@ export default function Home() {
   const [posseBola, setPosseBola] = useState<{time: 'A' | 'B', jogadorId: number} | null>(null);
   const [showPosseBola, setShowPosseBola] = useState(false);
   const [ultimaAtualizacaoPosse, setUltimaAtualizacaoPosse] = useState<number | null>(null);
+  const [tempoInicio, setTempoInicio] = useState<number | null>(null);
+  const [tempoFim, setTempoFim] = useState<number | null>(null);
 
   function StartSound() {
     new Audio("/apito.webm").play();
@@ -257,6 +290,10 @@ export default function Home() {
           if (typeof dados.pontosB === 'number') setPontosB(dados.pontosB);
           if (typeof dados.seconds === 'number') setSeconds(dados.seconds);
           if (typeof dados.isPaused === 'boolean') setIsPaused(dados.isPaused);
+          if (Array.isArray(dados.games)) setGames(dados.games);
+
+          // Salvar estado após importação
+          salvarEstado();
 
           alert('Dados importados com sucesso!');
         } catch (error) {
@@ -268,35 +305,133 @@ export default function Home() {
     }
   };
 
-  // Salvar dados no localStorage quando houver mudanças
-  useEffect(() => {
-    localStorage.setItem('jogadoresA', JSON.stringify(jogadoresA));
-    localStorage.setItem('jogadoresB', JSON.stringify(jogadoresB));
-    localStorage.setItem('historicoA', JSON.stringify(historicoA));
-    localStorage.setItem('historicoB', JSON.stringify(historicoB));
-    localStorage.setItem('faltas', JSON.stringify(faltas));
-    localStorage.setItem('timeAName', timeAName);
-    localStorage.setItem('timeBName', timeBName);
-    localStorage.setItem('games', JSON.stringify(games));
-    localStorage.setItem('pausas', JSON.stringify(pausas));
-    localStorage.setItem('faltasA', JSON.stringify(faltasA));
-    localStorage.setItem('faltasB', JSON.stringify(faltasB));
-    localStorage.setItem('pontosA', JSON.stringify(pontosA));
-    localStorage.setItem('pontosB', JSON.stringify(pontosB));
-    localStorage.setItem('seconds', JSON.stringify(seconds));
-    localStorage.setItem('isPaused', JSON.stringify(isPaused));
-    localStorage.setItem('isGameStarted', JSON.stringify(isGameStarted));
-    localStorage.setItem('posseBola', JSON.stringify(posseBola));
-    localStorage.setItem('showPosseBola', JSON.stringify(showPosseBola));
-    localStorage.setItem('ultimaAtualizacaoPosse', JSON.stringify(ultimaAtualizacaoPosse));
-  }, [
-    jogadoresA, jogadoresB, historicoA, historicoB, faltas,
-    timeAName, timeBName, games, pausas, faltasA, faltasB,
-    pontosA, pontosB, seconds, isPaused, isGameStarted,
-    posseBola, showPosseBola, ultimaAtualizacaoPosse
-  ]);
+  // Função para salvar estado no localStorage
+  const salvarEstado = () => {
+    try {
+      const estado: EstadoJogo = {
+        jogadoresA,
+        jogadoresB,
+        historicoA,
+        historicoB,
+        faltas,
+        timeAName,
+        timeBName,
+        games,
+        pausas,
+        faltasA,
+        faltasB,
+        pontosA,
+        pontosB,
+        seconds,
+        isPaused,
+        isGameStarted,
+        posseBola,
+        showPosseBola,
+        ultimaAtualizacaoPosse,
+        tempoInicio,
+        tempoFim,
+        aproveitamento: {
+          mediaPontosJogador: ((+pontosA + +pontosB) / (jogadoresA.length + jogadoresB.length)).toFixed(1),
+          mediaPontosTimeA: (+pontosA / jogadoresA.length).toFixed(1),
+          mediaPontosTimeB: (+pontosB / jogadoresB.length).toFixed(1)
+        }
+      };
+      localStorage.setItem('estadoJogo', JSON.stringify(estado));
+      console.log('Estado salvo com sucesso:', estado);
+    } catch (error) {
+      console.error('Erro ao salvar estado:', error);
+    }
+  };
 
-  // Função para salvar o jogo atual
+  // Função para carregar estado do localStorage
+  const carregarEstado = () => {
+    try {
+      const estadoSalvo = localStorage.getItem('estadoJogo');
+      if (estadoSalvo) {
+        const estado: EstadoJogo = JSON.parse(estadoSalvo);
+        console.log('Estado carregado:', estado);
+        
+        // Carregar todos os estados
+        if (Array.isArray(estado.jogadoresA)) setJogadoresA(estado.jogadoresA);
+        if (Array.isArray(estado.jogadoresB)) setJogadoresB(estado.jogadoresB);
+        if (Array.isArray(estado.historicoA)) setHistoricoA(estado.historicoA);
+        if (Array.isArray(estado.historicoB)) setHistoricoB(estado.historicoB);
+        if (Array.isArray(estado.faltas)) setFaltas(estado.faltas);
+        if (typeof estado.timeAName === 'string') setTimeAName(estado.timeAName);
+        if (typeof estado.timeBName === 'string') setTimeBName(estado.timeBName);
+        if (Array.isArray(estado.games)) setGames(estado.games);
+        if (typeof estado.pausas === 'number') setPausas(estado.pausas);
+        if (typeof estado.faltasA === 'number') setFaltasA(estado.faltasA);
+        if (typeof estado.faltasB === 'number') setFaltasB(estado.faltasB);
+        if (typeof estado.pontosA === 'number') setPontosA(estado.pontosA);
+        if (typeof estado.pontosB === 'number') setPontosB(estado.pontosB);
+        if (typeof estado.seconds === 'number') setSeconds(estado.seconds);
+        if (typeof estado.isPaused === 'boolean') setIsPaused(estado.isPaused);
+        if (typeof estado.isGameStarted === 'boolean') setIsGameStarted(estado.isGameStarted);
+        if (estado.posseBola) setPosseBola(estado.posseBola);
+        if (typeof estado.showPosseBola === 'boolean') setShowPosseBola(estado.showPosseBola);
+        if (typeof estado.ultimaAtualizacaoPosse === 'number') setUltimaAtualizacaoPosse(estado.ultimaAtualizacaoPosse);
+        if (typeof estado.tempoInicio === 'number') setTempoInicio(estado.tempoInicio);
+        if (typeof estado.tempoFim === 'number') setTempoFim(estado.tempoFim);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar estado:', error);
+      resetarTudo();
+    }
+  };
+
+  // Função para calcular o tempo total de jogo em segundos
+  const calcularTempoJogo = () => {
+    if (!tempoInicio) return 0;
+    if (tempoFim) return tempoFim - tempoInicio;
+    return Date.now() - tempoInicio;
+  };
+
+  // Função para calcular eficiência do jogador
+  const calcularEficiencia = (jogador: Jogador) => {
+    const cestas = jogador.time === 'A' 
+      ? historicoA.filter(p => p.jogadorId === jogador.id).length
+      : historicoB.filter(p => p.jogadorId === jogador.id).length;
+    
+    const faltas = jogador.faltas || 0;
+    
+    // Fórmula: pontos / faltas (evitar divisão por zero)
+    return faltas > 0 ? (jogador.pontos / faltas) : 0;
+  };
+
+  // Função para calcular jogador mais decisivo
+  const getJogadorMaisDecisivo = () => {
+    const todosJogadores = [...jogadoresA, ...jogadoresB];
+    const tempoDecorrido = calcularTempoJogo() / 1000; // Converter para segundos
+    const ultimos5Minutos = Math.max(0, tempoDecorrido - 300); // 300 segundos = 5 minutos
+
+    return todosJogadores.reduce((maisDecisivo, jogador) => {
+      const pontosUltimos5Min = jogador.time === 'A'
+        ? historicoA
+            .filter(p => p.jogadorId === jogador.id)
+            .filter(p => {
+              const [min, sec] = p.tempo.split(':').map(Number);
+              const tempoPonto = min * 60 + sec;
+              return tempoPonto >= ultimos5Minutos;
+            })
+            .reduce((sum, p) => sum + p.pontos, 0)
+        : historicoB
+            .filter(p => p.jogadorId === jogador.id)
+            .filter(p => {
+              const [min, sec] = p.tempo.split(':').map(Number);
+              const tempoPonto = min * 60 + sec;
+              return tempoPonto >= ultimos5Minutos;
+            })
+            .reduce((sum, p) => sum + p.pontos, 0);
+
+      if (pontosUltimos5Min > (maisDecisivo?.pontos || 0)) {
+        return { ...jogador, pontos: pontosUltimos5Min };
+      }
+      return maisDecisivo;
+    }, null as (Jogador & { pontos: number }) | null);
+  };
+
+  // Função para salvar game atual
   const salvarGame = () => {
     const novoGame: Game = {
       id: Date.now().toString(),
@@ -304,8 +439,14 @@ export default function Home() {
       timeBName,
       pontosA: +pontosA,
       pontosB: +pontosB,
-      jogadoresA,
-      jogadoresB,
+      jogadoresA: jogadoresA.map(j => ({
+        ...j,
+        eficiencia: calcularEficiencia(j)
+      })),
+      jogadoresB: jogadoresB.map(j => ({
+        ...j,
+        eficiencia: calcularEficiencia(j)
+      })),
       historicoA,
       historicoB,
       faltas,
@@ -318,10 +459,13 @@ export default function Home() {
       isGameStarted,
       posseBola,
       showPosseBola,
-      ultimaAtualizacaoPosse
+      ultimaAtualizacaoPosse,
+      tempoInicio,
+      tempoFim
     };
 
     setGames([...games, novoGame]);
+    salvarEstado();
   };
 
   // Função para carregar um game salvo
@@ -384,7 +528,7 @@ export default function Home() {
     return historicoCombinado;
   };
 
-  // Função para exportar dados
+  // Função para exportar dados do localStorage
   const exportarDados = () => {
     const dados = {
       games,
@@ -398,14 +542,6 @@ export default function Home() {
       pausas,
       faltasA,
       faltasB,
-      pontosA,
-      pontosB,
-      seconds,
-      isPaused,
-      isGameStarted,
-      posseBola,
-      showPosseBola,
-      ultimaAtualizacaoPosse,
       dataExportacao: new Date().toLocaleString()
     };
 
@@ -429,11 +565,17 @@ export default function Home() {
     
     const jogadorFaltas = faltas.filter((f: Falta) => f.jogadorId === jogador.id && f.time === jogador.time);
     
+    // Encontrar o jogador atual na lista correta
+    const jogadorAtual = jogador.time === 'A' 
+      ? jogadoresA.find(j => j.id === jogador.id)
+      : jogadoresB.find(j => j.id === jogador.id);
+    
     return {
       pontos,
       faltas: jogadorFaltas,
       totalPontos: pontos.reduce((sum, p) => sum + p.pontos, 0),
-      totalFaltas: jogadorFaltas.length
+      totalFaltas: jogadorFaltas.length,
+      tempoPosse: jogadorAtual?.tempoPosse || 0
     };
   };
 
@@ -445,22 +587,94 @@ export default function Home() {
 
   // Função para calcular estatísticas do jogo
   const getGameStats = (): GameStats => {
-    const todosJogadores = [...jogadoresA, ...jogadoresB];
-    const historicoCombinado = getHistoricoCombinado();
-    
+    // Combinar todos os jogos com o jogo atual
+    const todosJogos = [
+      ...games,
+      {
+        id: 'atual',
+        timeAName,
+        timeBName,
+        pontosA: +pontosA,
+        pontosB: +pontosB,
+        jogadoresA,
+        jogadoresB,
+        historicoA,
+        historicoB,
+        faltas,
+        data: new Date().toLocaleString(),
+        pausas,
+        faltasA,
+        faltasB,
+        seconds,
+        isPaused,
+        isGameStarted,
+        posseBola,
+        showPosseBola,
+        ultimaAtualizacaoPosse,
+        tempoInicio,
+        tempoFim
+      }
+    ];
+
+    // Combinar todos os jogadores de todos os jogos
+    const todosJogadores = todosJogos.flatMap(game => [
+      ...game.jogadoresA.map(j => ({ ...j, gameId: game.id })),
+      ...game.jogadoresB.map(j => ({ ...j, gameId: game.id }))
+    ]);
+
+    // Combinar todos os históricos
+    const todosHistoricos = todosJogos.flatMap(game => [
+      ...game.historicoA.map(h => ({ ...h, gameId: game.id, tipo: 'ponto' as const, time: 'A' as const })),
+      ...game.historicoB.map(h => ({ ...h, gameId: game.id, tipo: 'ponto' as const, time: 'B' as const })),
+      ...game.faltas.map(f => ({ ...f, gameId: game.id, tipo: 'falta' as const }))
+    ]);
+
+    // Combinar todas as faltas
+    const todasFaltas = todosJogos.flatMap(game => game.faltas.map(f => ({ ...f, gameId: game.id })));
+
+    // Calcular jogador mais eficiente (considerando todos os jogos)
+    const jogadorMaisEficiente = todosJogadores
+      .filter(j => j.faltas > 0)
+      .reduce((maisEficiente, jogador) => {
+        const pontos = todosHistoricos
+          .filter(h => h.jogadorId === jogador.id && h.gameId === jogador.gameId)
+          .reduce((sum, h) => sum + (h as Ponto).pontos, 0);
+        
+        const faltas = todasFaltas
+          .filter(f => f.jogadorId === jogador.id && f.gameId === jogador.gameId)
+          .length;
+
+        const eficiencia = pontos / faltas;
+        
+        if (eficiencia > (maisEficiente?.eficiencia || 0)) {
+          return { ...jogador, eficiencia };
+        }
+        return maisEficiente;
+      }, null as (Jogador & { eficiencia: number }) | null);
+
+    // Calcular jogador mais decisivo (considerando apenas o jogo atual)
+    const jogadorMaisDecisivo = getJogadorMaisDecisivo();
+
     // Calcular maior sequência de pontos por jogador
     const sequenciasJogadores = todosJogadores.map(jogador => {
       let sequenciaAtual = 0;
       let maiorSequencia = 0;
       
-      historicoCombinado.forEach(evento => {
-        if (evento.tipo === 'ponto' && evento.jogadorId === jogador.id) {
-          sequenciaAtual++;
-          maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
-        } else {
-          sequenciaAtual = 0;
-        }
-      });
+      todosHistoricos
+        .filter(h => h.jogadorId === jogador.id && h.gameId === jogador.gameId)
+        .sort((a, b) => {
+          const [minA, secA] = a.tempo.split(':').map(Number);
+          const [minB, secB] = b.tempo.split(':').map(Number);
+          return (minB * 60 + secB) - (minA * 60 + secA);
+        })
+        .forEach(evento => {
+          if (evento.tipo === 'ponto') {
+            sequenciaAtual++;
+            maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
+          } else {
+            sequenciaAtual = 0;
+          }
+        });
       
       return { jogador, sequencia: maiorSequencia };
     });
@@ -474,54 +688,71 @@ export default function Home() {
     let sequenciaAtualA = 0;
     let sequenciaAtualB = 0;
     
-    historicoCombinado.forEach(evento => {
-      if (evento.tipo === 'ponto') {
-        if (evento.time === 'A') {
-          sequenciaAtualA++;
-          sequenciaAtualB = 0;
-          sequenciasTimes[0].sequencia = Math.max(sequenciasTimes[0].sequencia, sequenciaAtualA);
+    todosHistoricos
+      .sort((a, b) => {
+        const [minA, secA] = a.tempo.split(':').map(Number);
+        const [minB, secB] = b.tempo.split(':').map(Number);
+        return (minB * 60 + secB) - (minA * 60 + secA);
+      })
+      .forEach(evento => {
+        if (evento.tipo === 'ponto') {
+          if (evento.time === 'A') {
+            sequenciaAtualA++;
+            sequenciaAtualB = 0;
+            sequenciasTimes[0].sequencia = Math.max(sequenciasTimes[0].sequencia, sequenciaAtualA);
+          } else {
+            sequenciaAtualB++;
+            sequenciaAtualA = 0;
+            sequenciasTimes[1].sequencia = Math.max(sequenciasTimes[1].sequencia, sequenciaAtualB);
+          }
         } else {
-          sequenciaAtualB++;
           sequenciaAtualA = 0;
-          sequenciasTimes[1].sequencia = Math.max(sequenciasTimes[1].sequencia, sequenciaAtualB);
+          sequenciaAtualB = 0;
         }
-      } else {
-        sequenciaAtualA = 0;
-        sequenciaAtualB = 0;
-      }
-    });
+      });
 
     // Calcular jogador que ficou mais tempo sem falta
-    const ultimaFaltaPorJogador = new Map<number, number>();
-    const tempoSemFalta = new Map<number, number>();
+    const ultimaFaltaPorJogador = new Map<string, number>();
+    const tempoSemFalta = new Map<string, number>();
     
-    historicoCombinado.forEach((evento, index) => {
-      if (evento.tipo === 'falta') {
-        ultimaFaltaPorJogador.set(evento.jogadorId, index);
-      }
+    todasFaltas.forEach((evento, index) => {
+      const key = `${evento.jogadorId}-${evento.gameId}`;
+      ultimaFaltaPorJogador.set(key, index);
     });
     
     todosJogadores.forEach(jogador => {
-      const ultimaFalta = ultimaFaltaPorJogador.get(jogador.id);
-      tempoSemFalta.set(jogador.id, ultimaFalta === undefined ? historicoCombinado.length : historicoCombinado.length - ultimaFalta);
+      const key = `${jogador.id}-${jogador.gameId}`;
+      const ultimaFalta = ultimaFaltaPorJogador.get(key);
+      tempoSemFalta.set(key, ultimaFalta === undefined ? todasFaltas.length : todasFaltas.length - ultimaFalta);
     });
 
     return {
-      jogadorMaisEficiente: todosJogadores
-        .filter(j => j.faltas > 0)
-        .sort((a, b) => (b.pontos / b.faltas) - (a.pontos / a.faltas))[0] || null,
-      jogadorMaisDecisivo: todosJogadores
-        .sort((a, b) => b.pontos - a.pontos)[0] || null,
+      jogadorMaisEficiente,
+      jogadorMaisDecisivo,
       maiorSequenciaPontos: sequenciasJogadores
         .sort((a, b) => b.sequencia - a.sequencia)[0] || null,
       maiorSequenciaTime: sequenciasTimes
         .sort((a, b) => b.sequencia - a.sequencia)[0] || null,
       jogadorMaisFaltoso: todosJogadores
-        .sort((a, b) => b.faltas - a.faltas)[0] || null,
+        .sort((a, b) => {
+          const faltasA = todasFaltas.filter(f => f.jogadorId === a.id && f.gameId === a.gameId).length;
+          const faltasB = todasFaltas.filter(f => f.jogadorId === b.id && f.gameId === b.gameId).length;
+          return faltasB - faltasA;
+        })[0] || null,
       jogadorMaisParticipativo: todosJogadores
-        .sort((a, b) => (b.pontos + b.faltas) - (a.pontos + a.faltas))[0] || null,
+        .sort((a, b) => {
+          const pontosA = todosHistoricos.filter(h => h.jogadorId === a.id && h.gameId === a.gameId).length;
+          const pontosB = todosHistoricos.filter(h => h.jogadorId === b.id && h.gameId === b.gameId).length;
+          const faltasA = todasFaltas.filter(f => f.jogadorId === a.id && f.gameId === a.gameId).length;
+          const faltasB = todasFaltas.filter(f => f.jogadorId === b.id && f.gameId === b.gameId).length;
+          return (pontosB + faltasB) - (pontosA + faltasA);
+        })[0] || null,
       jogadorMaisTempoSemFalta: todosJogadores
-        .sort((a, b) => (tempoSemFalta.get(b.id) || 0) - (tempoSemFalta.get(a.id) || 0))[0] || null
+        .sort((a, b) => {
+          const keyA = `${a.id}-${a.gameId}`;
+          const keyB = `${b.id}-${b.gameId}`;
+          return (tempoSemFalta.get(keyB) || 0) - (tempoSemFalta.get(keyA) || 0);
+        })[0] || null
     };
   };
 
@@ -684,13 +915,19 @@ export default function Home() {
   // useEffect para controlar a contagem regressiva do timer
   useEffect(() => {
     if (!isPaused && seconds > 0) {
+      if (!tempoInicio) {
+        setTempoInicio(Date.now());
+      }
       const timer = setTimeout(() => {
         setSeconds(seconds - 1);
+        if (seconds === 1) {
+          setTempoFim(Date.now());
+        }
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [isPaused, seconds]);
+  }, [isPaused, seconds, tempoInicio]);
 
   // Função para formatar o tempo em HH:mm:ss
   const formatarTempo = (segundos: number) => {
@@ -701,6 +938,26 @@ export default function Home() {
     
     return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundosRestantes.toString().padStart(2, '0')}`;
   };
+
+  // Atualizar useEffect para salvar estado
+  useEffect(() => {
+    const salvarEstadoComTimeout = setTimeout(() => {
+      salvarEstado();
+    }, 1000); // Salvar após 1 segundo de inatividade
+
+    return () => clearTimeout(salvarEstadoComTimeout);
+  }, [
+    jogadoresA, jogadoresB, historicoA, historicoB, faltas,
+    timeAName, timeBName, games, pausas, faltasA, faltasB,
+    pontosA, pontosB, seconds, isPaused, isGameStarted,
+    posseBola, showPosseBola, ultimaAtualizacaoPosse,
+    tempoInicio, tempoFim
+  ]);
+
+  // Carregar estado ao iniciar
+  useEffect(() => {
+    carregarEstado();
+  }, []);
 
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
@@ -1081,30 +1338,50 @@ export default function Home() {
                 <div className="space-y-4">
                   {jogadoresA.map((jogador) => {
                     const stats = getPlayerStats(jogador);
+                    const cestas3pts = stats.pontos.filter(p => p.pontos === 3).length;
+                    const cestas2pts = stats.pontos.filter(p => p.pontos === 2).length;
+                    const lancesLivres = stats.pontos.filter(p => p.pontos === 1).length;
                     return (
                       <div 
                         key={jogador.id} 
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
-              <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start">
                           <div>
                             <p className="text-lg font-bold">{jogador.nome}</p>
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-yellow-500">3pts:</span>
+                                <span className="text-sm">{cestas3pts} cestas ({cestas3pts * 3} pts)</span>
+                </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-yellow-500">2pts:</span>
+                                <span className="text-sm">{cestas2pts} cestas ({cestas2pts * 2} pts)</span>
+                </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-yellow-500">1pt:</span>
+                                <span className="text-sm">{lancesLivres} lances ({lancesLivres} pts)</span>
+              </div>
+              </div>
                             {stats.totalFaltas > 0 && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <GiCardPlay className="text-yellow-500" size={20} />
-                                <span className="text-sm text-zinc-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
-                </div>
+                              <div className="flex items-center gap-1 mt-2">
+                                <GiCardPlay className="text-red-500" size={20} />
+                                <span className="text-sm text-red-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
+            </div>
                             )}
-                </div>
+                            <div className="mt-2">
+                              <span className="text-sm text-zinc-400">Posse: {formatarTempo(jogador.tempoPosse || 0)}</span>
+                            </div>
+                          </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
                             <p className="text-sm text-zinc-400">
-                              {stats.pontos.length} {stats.pontos.length === 1 ? 'cesta' : 'cestas'}
+                              Eficiência: {calcularEficiencia(jogador).toFixed(1)}
                             </p>
-              </div>
-              </div>
-            </div>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -1114,26 +1391,46 @@ export default function Home() {
                 <div className="space-y-4">
                   {jogadoresB.map((jogador) => {
                     const stats = getPlayerStats(jogador);
+                    const cestas3pts = stats.pontos.filter(p => p.pontos === 3).length;
+                    const cestas2pts = stats.pontos.filter(p => p.pontos === 2).length;
+                    const lancesLivres = stats.pontos.filter(p => p.pontos === 1).length;
                     return (
                       <div 
                         key={jogador.id} 
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-start">
                           <div>
                             <p className="text-lg font-bold">{jogador.nome}</p>
+                            <div className="mt-2 space-y-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-yellow-500">3pts:</span>
+                                <span className="text-sm">{cestas3pts} cestas ({cestas3pts * 3} pts)</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-yellow-500">2pts:</span>
+                                <span className="text-sm">{cestas2pts} cestas ({cestas2pts * 2} pts)</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-yellow-500">1pt:</span>
+                                <span className="text-sm">{lancesLivres} lances ({lancesLivres} pts)</span>
+                              </div>
+                            </div>
                             {stats.totalFaltas > 0 && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <GiCardPlay className="text-yellow-500" size={20} />
-                                <span className="text-sm text-zinc-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
+                              <div className="flex items-center gap-1 mt-2">
+                                <GiCardPlay className="text-red-500" size={20} />
+                                <span className="text-sm text-red-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
                               </div>
                             )}
+                            <div className="mt-2">
+                              <span className="text-sm text-zinc-400">Posse: {formatarTempo(jogador.tempoPosse || 0)}</span>
+                            </div>
                           </div>
                           <div className="text-right">
                             <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
                             <p className="text-sm text-zinc-400">
-                              {stats.pontos.length} {stats.pontos.length === 1 ? 'cesta' : 'cestas'}
+                              Eficiência: {calcularEficiencia(jogador).toFixed(1)}
                             </p>
                           </div>
                         </div>
@@ -1147,18 +1444,20 @@ export default function Home() {
             <div className="max-w-2xl mx-auto">
               <div className="space-y-2">
                 {getHistoricoCombinado().map((item, index) => (
-                  <div key={index} className={`${item.tipo === 'ponto' ? 'bg-zinc-800' : 'bg-zinc-800'} p-3 rounded w-full flex justify-between items-center`}>
+                  <div key={index} className={`bg-zinc-800 p-3 rounded w-full flex justify-between items-center`}>
                     <div className="flex items-center gap-2">
                       {item.tipo === 'ponto' ? (
                         <>
-                          <span className="text-yellow-500 font-bold">+{(item as Ponto).pontos}</span>
-                          <span className="text-zinc-400">|</span>
+                          <span className={`font-bold px-2 py-1 rounded ${item.pontos === 3 ? 'bg-yellow-500' : item.pontos === 2 ? 'bg-yellow-600' : 'bg-yellow-700'} text-black`}>
+                            +{item.pontos}
+                          </span>
                           <span className="font-medium">{item.jogador}</span>
                         </>
                       ) : (
                         <>
-                          <span className="text-white font-bold">Falta</span>
-                          <span className="text-zinc-400">|</span>
+                          <span className="text-red-500 font-bold px-2 py-1 rounded bg-red-500/20">
+                            Falta
+                          </span>
                           <span className="font-medium">{item.jogador}</span>
                         </>
                       )}
@@ -1208,18 +1507,35 @@ export default function Home() {
                         <span className="font-bold">{getPlayerStats(selectedPlayer).pontos.length}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Eficiência (Pontos/Falta):</span>
+                        <span>Eficiência:</span>
                         <span className="font-bold">
-                          {selectedPlayer.faltas > 0 
-                            ? (selectedPlayer.pontos / selectedPlayer.faltas).toFixed(1)
-                            : selectedPlayer.pontos > 0 ? '∞' : '0.0'}
+                          {calcularEficiencia(selectedPlayer).toFixed(1)} pts
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Tempo de Posse:</span>
-                        <span className="font-bold">
-                          {formatarTempo(selectedPlayer.tempoPosse || 0)}
-                        </span>
+                        <span>Detalhes da Eficiência:</span>
+                      </div>
+                      <div className="pl-4 space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Tempo de Posse:</span>
+                          <span>{formatarTempo(selectedPlayer.tempoPosse || 0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cestas de 3pts:</span>
+                          <span>{getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 3).length * 3 * 3} pts</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cestas de 2pts:</span>
+                          <span>{getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 2).length * 2 * 2} pts</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Lances Livres:</span>
+                          <span>{getPlayerStats(selectedPlayer).pontos.filter(p => p.pontos === 1).length} pts</span>
+                        </div>
+                        <div className="flex justify-between text-red-500">
+                          <span>Penalidade Faltas:</span>
+                          <span>-{(selectedPlayer.faltas || 0) * 2} pts</span>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1360,33 +1676,31 @@ export default function Home() {
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Jogador Mais Eficiente</h4>
                 {getGameStats().jogadorMaisEficiente && (
-              <div>
+                  <div>
                     <p className="text-lg font-bold">
                       {getGameStats().jogadorMaisEficiente?.nome}
                     </p>
                     <p className="text-sm text-zinc-400">
-                      {getGameStats().jogadorMaisEficiente ? 
-                        ((getGameStats().jogadorMaisEficiente?.pontos || 0) / (getGameStats().jogadorMaisEficiente?.faltas || 1)).toFixed(1) : 
-                        '0.0'} pts/falta
+                      {calcularEficiencia(getGameStats().jogadorMaisEficiente!).toFixed(1)} pts/falta
                     </p>
-                          </div>
-                )}
-                        </div>
-              <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Jogador Mais Decisivo</h4>
-                {getGameStats().jogadorMaisDecisivo && (
-                  <div>
-                    <p className="text-lg font-bold">
-                      {getGameStats().jogadorMaisDecisivo?.nome}
-                    </p>
-                    <p className="text-sm text-zinc-400">
-                      {getPlayerStats(getGameStats().jogadorMaisDecisivo!).totalPontos} pontos nos últimos 5 minutos
-                    </p>
-                </div>
+                  </div>
                 )}
               </div>
-                          </div>
-                        </div>
+              <div className="bg-zinc-700 p-4 rounded-lg">
+                <h4 className="text-lg font-bold mb-2">Jogador Mais Decisivo</h4>
+                {getJogadorMaisDecisivo() && (
+                  <div>
+                    <p className="text-lg font-bold">
+                      {getJogadorMaisDecisivo()?.nome}
+                    </p>
+                    <p className="text-sm text-zinc-400">
+                      {getJogadorMaisDecisivo()?.pontos} pontos nos últimos 5 minutos
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Outros */}
           <div className="bg-zinc-800 p-4 rounded-lg">
@@ -1395,11 +1709,11 @@ export default function Home() {
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Tempo de Jogo</h4>
                 <p className="text-2xl font-bold text-yellow-500">
-                  {Math.floor((300 - seconds) / 60)}:{((300 - seconds) % 60).toString().padStart(2, '0')}
+                  {formatarTempo(calcularTempoJogo() / 1000)}
                 </p>
-                </div>
               </div>
             </div>
+          </div>
 
           {/* Posse de Bola */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
@@ -1414,7 +1728,7 @@ export default function Home() {
                       <span className="font-bold">
                         {formatarTempo(jogador.tempoPosse || 0)}
                       </span>
-                  </div>
+                    </div>
                 ))}
               </div>
             </div>
@@ -1427,40 +1741,40 @@ export default function Home() {
                       <span className="font-bold">
                         {formatarTempo(jogador.tempoPosse || 0)}
                       </span>
-                    </div>
-                  ))}
+                  </div>
+                ))}
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+              </div>
+            </div>
+          )}
 
-      {/* Modal de falta */}
-      {showFaltaModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-zinc-800 p-4 rounded-lg w-80">
-            <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
+          {/* Modal de falta */}
+          {showFaltaModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-zinc-800 p-4 rounded-lg w-80">
+                <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
             <div className="space-y-2">
               <div className="flex gap-2">
-                <button
-                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
-                  onClick={() => setSelectedFaltaTeam('A')}
-                >
-                  {timeAName}
-                </button>
-                <button
-                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
-                  onClick={() => setSelectedFaltaTeam('B')}
-                >
-                  {timeBName}
-                </button>
-              </div>
-              <div className="space-y-2">
-                {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
                   <button
-                    key={jogador.id}
-                    className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
+                    onClick={() => setSelectedFaltaTeam('A')}
+                  >
+                  {timeAName}
+                  </button>
+                  <button
+                  className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                    onClick={() => setSelectedFaltaTeam('B')}
+                  >
+                  {timeBName}
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
+                    <button
+                      key={jogador.id}
+                      className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
                     onClick={() => {
                       const tempoAtual = `${minutes}:${formattedSeconds}`;
                       const novaFalta: Falta = {
@@ -1482,19 +1796,19 @@ export default function Home() {
                       }
                       setShowFaltaModal(false);
                     }}
-                  >
-                    {jogador.nome}
-                  </button>
-                ))}
+                    >
+                      {jogador.nome}
+                    </button>
+                  ))}
               </div>
-            </div>
-            <button
-              className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
-              onClick={() => setShowFaltaModal(false)}
-            >
-              Cancelar
-            </button>
-          </div>
+                </div>
+                <button
+                  className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
+                  onClick={() => setShowFaltaModal(false)}
+                >
+                  Cancelar
+                </button>
+              </div>
         </div>
       )}
     </main>

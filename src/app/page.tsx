@@ -533,6 +533,63 @@ export default function Home() {
     return historicoCombinado;
   };
 
+  // Função para exportar dados do localStorage
+  const exportarDados = () => {
+    const dados = {
+      games,
+      jogadoresA,
+      jogadoresB,
+      historicoA,
+      historicoB,
+      faltas,
+      timeAName,
+      timeBName,
+      pausas,
+      faltasA,
+      faltasB,
+      dataExportacao: new Date().toLocaleString()
+    };
+
+    const dadosJSON = JSON.stringify(dados, null, 2);
+    const blob = new Blob([dadosJSON], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `placar-basquete-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Função para importar dados
+  const importarDados = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const dados = JSON.parse(e.target?.result as string);
+          if (dados.games) setGames(dados.games);
+          if (dados.jogadoresA) setJogadoresA(dados.jogadoresA);
+          if (dados.jogadoresB) setJogadoresB(dados.jogadoresB);
+          if (dados.historicoA) setHistoricoA(dados.historicoA);
+          if (dados.historicoB) setHistoricoB(dados.historicoB);
+          if (dados.faltas) setFaltas(dados.faltas);
+          if (dados.timeAName) setTimeAName(dados.timeAName);
+          if (dados.timeBName) setTimeBName(dados.timeBName);
+          if (dados.pausas) setPausas(dados.pausas);
+          if (dados.faltasA) setFaltasA(dados.faltasA);
+          if (dados.faltasB) setFaltasB(dados.faltasB);
+          alert('Dados importados com sucesso!');
+        } catch (error) {
+          alert('Erro ao importar dados. Verifique se o arquivo é válido.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
       {/* Botão fixo para salvar game */}
@@ -589,13 +646,28 @@ export default function Home() {
                 </div>
               ))}
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex gap-2">
               <button
                 className="w-full p-2 bg-green-500 rounded hover:bg-green-600"
                 onClick={salvarGame}
               >
                 Salvar Game Atual
               </button>
+              <button
+                className="w-full p-2 bg-blue-500 rounded hover:bg-blue-600"
+                onClick={exportarDados}
+              >
+                Exportar Dados
+              </button>
+              <label className="w-full p-2 bg-yellow-500 rounded hover:bg-yellow-600 text-center cursor-pointer">
+                Importar Dados
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importarDados}
+                  className="hidden"
+                />
+              </label>
             </div>
           </div>
         </div>

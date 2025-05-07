@@ -451,7 +451,7 @@ export default function Home() {
       localStorage.setItem('isPaused', JSON.stringify(isPaused));
       localStorage.setItem('isGameStarted', JSON.stringify(isGameStarted));
       localStorage.setItem('games', JSON.stringify(games));
-      console.log('Estado salvo com sucesso:', estado);
+      // console.log('Estado salvo com sucesso:', estado);
     } catch (error) {
       console.error('Erro ao salvar estado:', error);
     }
@@ -539,7 +539,7 @@ export default function Home() {
 
       if (estadoSalvo) {
         const estado: EstadoJogo = JSON.parse(estadoSalvo);
-        console.log('Estado carregado:', estado);
+        // console.log('Estado carregado:', estado);
 
         // Carregar todos os estados
         if (Array.isArray(estado.jogadoresA)) {

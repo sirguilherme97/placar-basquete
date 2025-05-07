@@ -5,15 +5,16 @@ import { VscDebugRestart } from "react-icons/vsc";
 import { GiWhistle, GiCardPlay } from "react-icons/gi";
 
 interface Jogador {
-  id: number; // Número único (timestamp)
+  id: number; // ID único estático
+  timeId: number; // ID específico do time
   nome: string;
   pontos: number;
   faltas: number;
   eficiencia?: number;
   time: 'A' | 'B' | null;
-  tempoPosse?: number; // Tempo em segundos que o jogador teve a posse
-  stamina: number; // Nova propriedade para controlar a estamina do jogador
-  historicoTimes?: { time: 'A' | 'B', pontos: number, faltas: number }[]; // Histórico de times
+  tempoPosse?: number;
+  stamina: number;
+  historicoTimes?: { time: 'A' | 'B', pontos: number, faltas: number }[];
 }
 
 interface Falta {
@@ -108,6 +109,9 @@ interface EstadoJogo {
     mediaPontosTimeB: string;
   };
 }
+
+// Variável estática para controlar IDs únicos
+let nextUniqueId = 1;
 
 export default function Home() {
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
@@ -1188,15 +1192,16 @@ export default function Home() {
     if (!newPlayerName.trim()) return;
 
     const novoJogador: Jogador = {
-      id: Date.now(), // Usar timestamp para garantir ID único
+      id: nextUniqueId++, // Incrementa o ID único
+      timeId: Date.now(), // ID específico para o time
       nome: newPlayerName.trim(),
       pontos: 0,
       faltas: 0,
       time: teamToAddPlayer,
       tempoPosse: 0,
       stamina: 100,
-      eficiencia: 0, // Iniciar com eficiência zero
-      historicoTimes: [] // Iniciar com histórico vazio
+      eficiencia: 0,
+      historicoTimes: []
     };
 
     if (teamToAddPlayer === 'A') {
@@ -1294,22 +1299,22 @@ export default function Home() {
     if (!newPlayerName.trim()) return;
 
     const novoJogador: Jogador = {
-      id: Date.now(), // Usar timestamp para garantir ID único
+      id: nextUniqueId++, // Incrementa o ID único
+      timeId: Date.now(), // ID específico para o banco
       nome: newPlayerName.trim(),
       pontos: 0,
       faltas: 0,
       time: null as null,
       tempoPosse: 0,
-      stamina: 100, // Sempre começar com estamina cheia
-      eficiencia: 0, // Iniciar com eficiência zero
-      historicoTimes: [] // Iniciar com histórico vazio
+      stamina: 100,
+      eficiencia: 0,
+      historicoTimes: []
     };
 
     setJogadoresBanco([...jogadoresBanco, novoJogador]);
     setShowAddBenchPlayerPopover(false);
     setNewPlayerName('');
 
-    // Salvar estado imediatamente para não perder o jogador
     setTimeout(() => {
       salvarEstado();
     }, 300);
@@ -1317,17 +1322,14 @@ export default function Home() {
 
   // Função para mover jogador do banco para um time
   const adicionarAoTime = (jogador: Jogador, time: 'A' | 'B') => {
-    // Verificar se o jogador já jogou nesse time antes
     const historico = jogador.historicoTimes || [];
     const ultimoTime = jogador.time;
     let historicoAtualizado = [...historico];
 
-    // Se o jogador já estava em um time, guardar seus dados naquele time
     if (ultimoTime === 'A' || ultimoTime === 'B') {
       const pontosSalvos = jogador.pontos;
       const faltasSalvos = jogador.faltas;
 
-      // Adicionar ao histórico
       historicoAtualizado.push({
         time: ultimoTime,
         pontos: pontosSalvos,
@@ -1335,25 +1337,21 @@ export default function Home() {
       });
     }
 
-    // Atualizar o jogador mantendo TODOS os atributos originais
     const jogadorAtualizado: Jogador = {
-      ...jogador,                     // Mantém todos os atributos originais
-      time: time,                     // Atualiza apenas o time
+      ...jogador,
+      timeId: Date.now(), // Novo ID específico para o time
+      time: time,
       historicoTimes: historicoAtualizado,
-      // Não zeramos nenhum atributo, mantemos todos os valores originais
     };
 
-    // Remover jogador do banco
-    setJogadoresBanco(jogadoresBanco.filter(j => j.id !== jogador.id));
+    setJogadoresBanco(jogadoresBanco.filter(j => j.timeId !== jogador.timeId));
 
-    // Adicionar ao time correspondente
     if (time === 'A') {
       setJogadoresA([...jogadoresA, jogadorAtualizado]);
     } else {
       setJogadoresB([...jogadoresB, jogadorAtualizado]);
     }
 
-    // Salvar estado imediatamente para garantir persistência
     setTimeout(() => {
       salvarEstado();
     }, 300);
@@ -1363,10 +1361,8 @@ export default function Home() {
   const voltarParaBanco = (jogador: Jogador) => {
     const time = jogador.time;
 
-    // Se o jogador não tem time, não fazer nada
     if (time !== 'A' && time !== 'B') return;
 
-    // Guardar histórico antes de voltar para o banco
     const historico = jogador.historicoTimes || [];
     const historicoAtualizado = [...historico, {
       time,
@@ -1374,29 +1370,25 @@ export default function Home() {
       faltas: jogador.faltas
     }];
 
-    // Calcular eficiência atual do jogador antes de ir para o banco
     const eficienciaAtual = calcularEficiencia(jogador);
 
-    // Atualizar o jogador para o banco, mantendo TODOS os atributos
     const jogadorAtualizado: Jogador = {
-      ...jogador,                     // Primeiro preservamos TODOS os atributos originais
-      time: null as null,             // Time muda para null (banco)
+      ...jogador,
+      timeId: Date.now(), // Novo ID específico para o banco
+      time: null as null,
       historicoTimes: historicoAtualizado,
-      eficiencia: eficienciaAtual,    // Atualizamos a eficiência com o valor calculado
-      stamina: jogador.stamina || 100 // Garantimos que a stamina seja mantida
+      eficiencia: eficienciaAtual,
+      stamina: jogador.stamina || 100
     };
 
-    // Remover do time atual
     if (time === 'A') {
-      setJogadoresA(jogadoresA.filter(j => j.id !== jogador.id));
+      setJogadoresA(jogadoresA.filter(j => j.timeId !== jogador.timeId));
     } else {
-      setJogadoresB(jogadoresB.filter(j => j.id !== jogador.id));
+      setJogadoresB(jogadoresB.filter(j => j.timeId !== jogador.timeId));
     }
 
-    // Adicionar ao banco com todos os atributos preservados
     setJogadoresBanco([...jogadoresBanco, jogadorAtualizado]);
 
-    // Salvar estado imediatamente para garantir persistência
     setTimeout(() => {
       salvarEstado();
     }, 300);
@@ -1492,30 +1484,25 @@ export default function Home() {
     
     const jogador = jogadorParaRemover;
     
-    // Verificar de onde remover o jogador (time A, time B ou banco)
     if (jogador.time === 'A') {
-      setJogadoresA(jogadoresA.filter(j => j.id !== jogador.id));
+      setJogadoresA(jogadoresA.filter(j => j.timeId !== jogador.timeId));
     } else if (jogador.time === 'B') {
-      setJogadoresB(jogadoresB.filter(j => j.id !== jogador.id));
+      setJogadoresB(jogadoresB.filter(j => j.timeId !== jogador.timeId));
     } else {
-      setJogadoresBanco(jogadoresBanco.filter(j => j.id !== jogador.id));
+      setJogadoresBanco(jogadoresBanco.filter(j => j.timeId !== jogador.timeId));
     }
     
-    // Também remover quaisquer pontos e faltas associados
     setHistoricoA(historicoA.filter(p => p.jogadorId !== jogador.id));
     setHistoricoB(historicoB.filter(p => p.jogadorId !== jogador.id));
     setFaltas(faltas.filter(f => f.jogadorId !== jogador.id));
     
-    // Se o jogador tinha posse de bola, resetar
     if (posseBola && posseBola.jogadorId === jogador.id) {
       setPosseBola(null);
     }
     
-    // Fechar o modal de confirmação
     setShowRemoveConfirmation(false);
     setJogadorParaRemover(null);
     
-    // Salvar estado após a remoção
     setTimeout(() => {
       salvarEstado();
     }, 300);

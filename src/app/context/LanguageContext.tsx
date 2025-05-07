@@ -34,8 +34,8 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('pt');
-  const [translations, setTranslations] = useState<Translations>(pt);
+  const [language, setLanguage] = useState<Language>('en');
+  const [translations, setTranslations] = useState<Translations>(en);
 
   useEffect(() => {
     // Verificar se window está definido (evita erros de SSR)

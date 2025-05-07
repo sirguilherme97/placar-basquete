@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useDirection } from '../context/DirContext';
 import { FaLinkedin, FaGithub, FaGlobe, FaLanguage } from 'react-icons/fa';
 import LanguageSelectorModal from './LanguageSelectorModal';
+import { APP_VERSION } from '../constants';
 
 export default function Footer() {
   const { language, translations } = useLanguage();
@@ -56,8 +57,9 @@ export default function Footer() {
           </div>
         </div>
         
-        <div className="text-center mt-4 text-xs text-gray-400">
-          © {new Date().getFullYear()} Basketball Scorer - {translations.copy}
+        <div className="flex flex-col items-center justify-center space-y-4 mb-4 text-center mt-4 text-xs text-gray-400">
+          <span className="font-normal text-xs">© {new Date().getFullYear()} Basketball Scorer - {translations.copy}</span>
+          <span className="font-bold">v{APP_VERSION}</span>
         </div>
       </footer>
 

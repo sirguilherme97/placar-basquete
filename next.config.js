@@ -118,6 +118,14 @@ const withPWA = require('next-pwa')({
   ]
 })
 
-const nextConfig = {}
+const nextConfig = {
+  webpack: (config) => {
+    config.module.rules.push({
+      test: /package\.json$/,
+      type: 'json',
+    });
+    return config;
+  },
+}
 
 module.exports = withPWA(nextConfig)

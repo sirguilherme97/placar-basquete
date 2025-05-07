@@ -1913,7 +1913,7 @@ export default function Home() {
           </div>
 
           {historicoView === 'times' ? (
-            <div className="grid grid-cols-2 gap-4 ">
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-4">
               <div>
                 <h3 className="text-xl font-bold mb-2">{timeAName}</h3>
                 <div className="space-y-4">
@@ -1928,36 +1928,38 @@ export default function Home() {
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+                          <div className="w-full sm:w-auto">
                             <p className="text-lg font-bold">{jogador.nome}</p>
-                            <div className="mt-2 space-y-1">
-                              <div className="flex flex-col items-start gap-2">
-                                <span className="text-yellow-500">3pts:</span>
-                                <span className="text-sm">{cestas3pts} {translations.cestas} ({cestas3pts * 3} {translations.pontos})</span>
+                            <div className="mt-2 grid grid-cols-3 sm:flex sm:flex-col gap-2 sm:gap-1">
+                              <div className="flex flex-col items-start">
+                                <span className="text-yellow-500 text-sm">3pts:</span>
+                                <span className="text-xs sm:text-sm">{cestas3pts} {translations.cestas} ({cestas3pts * 3} {translations.pontos})</span>
                               </div>
-                              <div className="flex flex-col items-start gap-2">
-                                <span className="text-yellow-500">2pts:</span>
-                                <span className="text-sm">{cestas2pts} {translations.cestas} ({cestas2pts * 2} {translations.pontos})</span>
+                              <div className="flex flex-col items-start">
+                                <span className="text-yellow-500 text-sm">2pts:</span>
+                                <span className="text-xs sm:text-sm">{cestas2pts} {translations.cestas} ({cestas2pts * 2} {translations.pontos})</span>
                               </div>
-                              <div className="flex flex-col items-start gap-2">
-                                <span className="text-yellow-500">1pt:</span>
-                                <span className="text-sm">{lancesLivres} {translations.lances} ({lancesLivres} {translations.pontos})</span>
+                              <div className="flex flex-col items-start">
+                                <span className="text-yellow-500 text-sm">1pt:</span>
+                                <span className="text-xs sm:text-sm">{lancesLivres} {translations.lances} ({lancesLivres} {translations.pontos})</span>
                               </div>
                             </div>
-                            {stats.totalFaltas > 0 && (
-                              <div className="flex items-center gap-1 mt-2">
-                                <GiCardPlay className="text-red-500" size={20} />
-                                <span className="text-sm text-red-400">{stats.totalFaltas} {translations.falta}{stats.totalFaltas > 1 ? 's' : ''}</span>
+                            <div className="flex flex-wrap items-center gap-3 mt-2">
+                              {stats.totalFaltas > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <GiCardPlay className="text-red-500" size={16} />
+                                  <span className="text-xs sm:text-sm text-red-400">{stats.totalFaltas} {translations.falta}{stats.totalFaltas > 1 ? 's' : ''}</span>
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-xs sm:text-sm text-zinc-400">{translations.posse}: {formatarTempo(jogador.tempoPosse || 0)}</span>
                               </div>
-                            )}
-                            <div className="mt-2">
-                              <span className="text-sm text-zinc-400">{translations.posse}: {formatarTempo(jogador.tempoPosse || 0)}</span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} {translations.pts}</p>
-                            <p className="text-sm text-zinc-400">
+                          <div className="flex flex-row sm:flex-col justify-between w-full sm:w-auto sm:text-right mt-2 sm:mt-0">
+                            <p className="text-xl sm:text-2xl font-bold text-yellow-500">{stats.totalPontos} {translations.pts}</p>
+                            <p className="text-xs sm:text-sm text-zinc-400">
                               {translations.eficiencia}: {calcularEficiencia(jogador).toFixed(1)}
                             </p>
                           </div>
@@ -1981,36 +1983,38 @@ export default function Home() {
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
-                        <div className="flex justify-between items-start">
-                          <div>
+                        <div className="flex flex-col sm:flex-row justify-between items-start gap-2">
+                          <div className="w-full sm:w-auto">
                             <p className="text-lg font-bold">{jogador.nome}</p>
-                            <div className="mt-2 space-y-1">
-                              <div className="flex flex-col items-start gap-2">
-                                <span className="text-yellow-500">3pts:</span>
-                                <span className="text-sm">{cestas3pts} {translations.cestas} ({cestas3pts * 3} {translations.pontos})</span>
+                            <div className="mt-2 grid grid-cols-3 sm:flex sm:flex-col gap-2 sm:gap-1">
+                              <div className="flex flex-col items-start">
+                                <span className="text-yellow-500 text-sm">3pts:</span>
+                                <span className="text-xs sm:text-sm">{cestas3pts} {translations.cestas} ({cestas3pts * 3} {translations.pontos})</span>
                               </div>
-                              <div className="flex flex-col items-start gap-2">
-                                <span className="text-yellow-500">2pts:</span>
-                                <span className="text-sm">{cestas2pts} {translations.cestas} ({cestas2pts * 2} {translations.pontos})</span>
+                              <div className="flex flex-col items-start">
+                                <span className="text-yellow-500 text-sm">2pts:</span>
+                                <span className="text-xs sm:text-sm">{cestas2pts} {translations.cestas} ({cestas2pts * 2} {translations.pontos})</span>
                               </div>
-                              <div className="flex flex-col items-start gap-2">
-                                <span className="text-yellow-500">1pt:</span>
-                                <span className="text-sm">{lancesLivres} {translations.lances} ({lancesLivres} {translations.pontos})</span>
+                              <div className="flex flex-col items-start">
+                                <span className="text-yellow-500 text-sm">1pt:</span>
+                                <span className="text-xs sm:text-sm">{lancesLivres} {translations.lances} ({lancesLivres} {translations.pontos})</span>
                               </div>
                             </div>
-                            {stats.totalFaltas > 0 && (
-                              <div className="flex items-center gap-1 mt-2">
-                                <GiCardPlay className="text-red-500" size={20} />
-                                <span className="text-sm text-red-400">{stats.totalFaltas} {translations.falta}{stats.totalFaltas > 1 ? 's' : ''}</span>
+                            <div className="flex flex-wrap items-center gap-3 mt-2">
+                              {stats.totalFaltas > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <GiCardPlay className="text-red-500" size={16} />
+                                  <span className="text-xs sm:text-sm text-red-400">{stats.totalFaltas} {translations.falta}{stats.totalFaltas > 1 ? 's' : ''}</span>
+                                </div>
+                              )}
+                              <div>
+                                <span className="text-xs sm:text-sm text-zinc-400">{translations.posse}: {formatarTempo(jogador.tempoPosse || 0)}</span>
                               </div>
-                            )}
-                            <div className="mt-2">
-                              <span className="text-sm text-zinc-400">{translations.posse}: {formatarTempo(jogador.tempoPosse || 0)}</span>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} {translations.pts}</p>
-                            <p className="text-sm text-zinc-400">
+                          <div className="flex flex-row sm:flex-col justify-between w-full sm:w-auto sm:text-right mt-2 sm:mt-0">
+                            <p className="text-xl sm:text-2xl font-bold text-yellow-500">{stats.totalPontos} {translations.pts}</p>
+                            <p className="text-xs sm:text-sm text-zinc-400">
                               {translations.eficiencia}: {calcularEficiencia(jogador).toFixed(1)}
                             </p>
                           </div>

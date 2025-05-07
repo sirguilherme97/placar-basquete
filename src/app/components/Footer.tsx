@@ -53,7 +53,7 @@ export default function Footer() {
       </div>
       
       <div className="text-center mt-4 text-xs text-gray-400">
-        © {new Date().getFullYear()} Basketball Scorer - Record your basketball games
+        © {new Date().getFullYear()} Basketball Scorer - Record your games
       </div>
     </footer>
   );

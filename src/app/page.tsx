@@ -1831,7 +1831,7 @@ export default function Home() {
           {showPopover && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
               <div className="bg-zinc-800 p-4 rounded-lg w-80">
-                <h3 className="text-xl font-bold mb-4">Selecione o jogador</h3>
+                <h3 className="text-xl font-bold mb-4">{translations.selecioneJogador}</h3>
                 <div className="space-y-2">
                   {(selectedTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
                     <button
@@ -1847,7 +1847,7 @@ export default function Home() {
                   className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
                   onClick={() => setShowPopover(false)}
                 >
-                  Cancelar
+                  {translations.cancelar}
                 </button>
               </div>
             </div>
@@ -2442,7 +2442,7 @@ export default function Home() {
               className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
               onClick={() => setShowFaltaModal(false)}
             >
-              Cancelar
+              {translations.cancelar}
             </button>
           </div>
         </div>

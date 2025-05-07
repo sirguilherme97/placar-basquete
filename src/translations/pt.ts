@@ -1,13 +1,13 @@
 export const pt = {
   language: "Português",
   languageSelector: "Selecionar idioma",
-  
+
   // Redes sociais
   linkedin: "LinkedIn",
   instagram: "Instagram",
   github: "GitHub",
   siteOficial: "Site Oficial",
-  
+
   // Componentes da interface
   placar: "Placar",
   informacoes: "Informações",
@@ -16,7 +16,7 @@ export const pt = {
   removerPosseBola: "Remover Posse da Bola",
   banco: "Banco",
   remover: "Remover",
-  
+
   // Times
   timeA: "Time A",
   timeB: "Time B",
@@ -32,17 +32,17 @@ export const pt = {
   fechar: "Fechar",
   adicionar: "Adicionar",
   cancelar: "Cancelar",
-  
+
   // Pontuação
   mais3: "+3",
   mais2: "+2",
   mais1: "+1",
-  
+
   // Confirmações
   confirmarRemocao: "Confirmar Remoção",
   temCertezaRemover: "Tem certeza que deseja remover o jogador",
   acaoNaoDesfeita: "Esta ação não poderá ser desfeita.",
-  
+
   // Games
   gamesSalvos: "Games Salvos",
   placarLabel: "Placar:",
@@ -51,19 +51,19 @@ export const pt = {
   salvarGameAtual: "Salvar Game Atual",
   exportarDados: "Exportar Dados",
   importarDados: "Importar Dados",
-  
+
   // Tempo
   tempoDeJogo: "Tempo de Jogo",
   segundos: "SEGUNDOS",
   tempoJogo: "Tempo de Jogo",
-  
+
   // Popover jogador
   selecioneJogador: "Selecione o jogador",
-  
+
   // Formulários
   nomeDoJogador: "Nome do jogador",
   tempoDePosse: "Posse:",
-  
+
   // Estatísticas
   aproveitamento: "Aproveitamento",
   mediaPontosJogador: "Média de Pontos por Jogador",
@@ -79,7 +79,7 @@ export const pt = {
   maiorCestinha3Pontos: "Maior Cestinha de 3 Pontos",
   maiorCestinha: "Maior Cestinha",
   outros: "Outros",
-  
+
   // Histórico
   historico: "Histórico",
   em: "em",
@@ -114,7 +114,7 @@ export const pt = {
   formula: "Fórmula: (Pontos / Tempo de Posse em minutos) - (Faltas * 2)",
   maiorEficiencia: "Quanto mais pontos em menos tempo, maior a eficiência.",
   penalidade: "Cada falta reduz 2 pontos da eficiência.",
-  
+
   // Banco de jogadores
   bancoJogadores: "Banco de Jogadores",
   historicoTimes: "Histórico de Times",
@@ -125,7 +125,7 @@ export const pt = {
   cestas: "cestas",
   lances: "lances",
   posse: "Posse",
-
+  copy: "Registre seus jogos",
   // Notificações
   falta: "Falta"
 };

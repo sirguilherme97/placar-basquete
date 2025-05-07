@@ -124,6 +124,7 @@ export const en = {
   cestas: "baskets",
   lances: "free throws",
   posse: "Possession",
+  copy: "Record your games",
   // Notifications
   falta: "Foul"
 };

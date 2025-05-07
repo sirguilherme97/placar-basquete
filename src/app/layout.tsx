@@ -2,6 +2,7 @@ import './globals.css'
 import { LanguageProvider } from './context/LanguageContext'
 import Footer from './components/Footer'
 import { Analytics } from "@vercel/analytics/react"
+import { DirProvider } from './context/DirContext'
 
 export const metadata = {
   title: 'Basketball Scorer',
@@ -17,9 +18,11 @@ export default function RootLayout({
     <html lang="en">
       <body className='bg-zinc-900'>
         <LanguageProvider>
-          <main className="pb-16">{children}</main>
-          <Analytics />
-          <Footer />
+          <DirProvider>
+            <main className="pb-16">{children}</main>
+            <Analytics />
+            <Footer />
+          </DirProvider>
         </LanguageProvider>
       </body>
     </html>

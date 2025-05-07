@@ -120,8 +120,8 @@ export default function Home() {
   const [isPaused, setIsPaused] = useState(true); // Estado para controlar a pausa do timer
   const [pontosA, setPontosA] = useState<any>(0); // Estado para armazenar os pontos do Time A
   const [pontosB, setPontosB] = useState<any>(0); // Estado para armazenar os pontos do Time B
-  const [timeAName, setTimeAName] = useState("Time A"); // Estado para armazenar o nome do Time A
-  const [timeBName, setTimeBName] = useState("Time B"); // Estado para armazenar o nome do Time B
+  const [timeAName, setTimeAName] = useState("Team A"); // Estado para armazenar o nome do Time A
+  const [timeBName, setTimeBName] = useState("Team B"); // Estado para armazenar o nome do Time B
   const [jogadoresA, setJogadoresA] = useState<Jogador[]>([]);
   const [jogadoresB, setJogadoresB] = useState<Jogador[]>([]);
   const [jogadoresBanco, setJogadoresBanco] = useState<Jogador[]>([]);
@@ -290,8 +290,8 @@ export default function Home() {
     setHistoricoB([]);
     setPontosA(0);
     setPontosB(0);
-    setTimeAName("Time A");
-    setTimeBName("Time B");
+    setTimeAName("Team A");
+    setTimeBName("Team B");
     setSeconds(0); // Zera o timer
     setIsPaused(true);
     setFaltasA(0);
@@ -1103,12 +1103,12 @@ export default function Home() {
 
   // Funções para reiniciar os valores do Time A e Time B
   const handleRestartA = () => {
-    setTimeAName("Time A");
+    setTimeAName("Team A");
     setPontosA(0);
   };
 
   const handleRestartB = () => {
-    setTimeBName("Time B");
+    setTimeBName("Team B");
     setPontosB(0);
   };
 
@@ -1699,7 +1699,7 @@ export default function Home() {
                   <p className='mt-10 '>{translations.tempoJogo} - {translations.segundos}</p>
                   {/* <p className='mt-10 '>Tempo de Jogo - SEGUNDOS</p> */}
                   <input
-                    placeholder='Tempo de Jogo'
+                    placeholder={translations.tempoJogo}
                     type="number"
                     value={seconds}
                     onChange={handleTimer}
@@ -1707,7 +1707,7 @@ export default function Home() {
                   />
                   <p className='mt-2'>{translations.pontos} {`${timeAName}`}</p>
                   <input
-                    placeholder='Pontos do Time A'
+                    placeholder={translations.pontosDoTimeA}
                     type="number"
                     value={pontosA}
                     onChange={handlePontosA}
@@ -1715,7 +1715,7 @@ export default function Home() {
                   />
                   <p className='mt-2'>{translations.pontos} {`${timeBName}`}</p>
                   <input
-                    placeholder='Pontos do Time B'
+                    placeholder={translations.pontosDoTimeB}
                     type="number"
                     value={pontosB}
                     onChange={handlePontosB}
@@ -1857,12 +1857,12 @@ export default function Home() {
           {showAddPlayerPopover && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
               <div className="bg-zinc-800 p-4 rounded-lg w-80">
-                <h3 className="text-xl font-bold mb-4">Adicionar Jogador - Time {teamToAddPlayer}</h3>
+                <h3 className="text-xl font-bold mb-4">{translations.adicionarJogador} - {translations.time} {teamToAddPlayer}</h3>
                 <input
                   type="text"
                   value={newPlayerName}
                   onChange={(e) => setNewPlayerName(e.target.value)}
-                  placeholder="Nome do jogador"
+                  placeholder={translations.nomeDoJogador}
                   className="w-full p-2 bg-zinc-700 rounded mb-4"
                   onKeyPress={(e) => e.key === 'Enter' && adicionarJogador()}
                 />
@@ -1870,14 +1870,14 @@ export default function Home() {
                   <button
                     className="flex-1 p-2 bg-green-500 rounded hover:bg-green-600"
                     onClick={adicionarJogador}
-                  >
-                    Adicionar
+                  > 
+                    {translations.adicionar}
                   </button>
                   <button
                     className="flex-1 p-2 bg-red-500 rounded hover:bg-red-600"
                     onClick={() => setShowAddPlayerPopover(false)}
                   >
-                    Cancelar
+                    {translations.cancelar}
                   </button>
                 </div>
               </div>

@@ -94,6 +94,8 @@ export const pt = {
   estatisticasDetalhadas: "Estatísticas Detalhadas",
   // Ações
   registrarFalta: "Registrar Falta",
+  pontosDoTimeA: "Pontos do Time A",
+  pontosDoTimeB: "Pontos do Time B",
   selecioneTime: "Selecione o time",
   resetarTudo: "Resetar Tudo",
   nenhumPontoMarcadoAinda: "Nenhum ponto marcado ainda",

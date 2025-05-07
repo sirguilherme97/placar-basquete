@@ -157,6 +157,10 @@ export default function Home() {
 
   function StartSound() {
     new Audio("/apito.webm").play();
+    // Se estiver em 0 segundos, apenas tocar o som
+    if (seconds === 0) {
+      return;
+    }
     if (isGameStarted) {
       setActiveTab('informacoes');
       setShowFaltaModal(true);
@@ -1166,6 +1170,11 @@ export default function Home() {
 
   // Função para alternar entre pausar e retomar o timer
   const handleTimerToggle = () => {
+    // Se o cronômetro estiver em 0, não permitir iniciar
+    if (seconds === 0) {
+      return;
+    }
+    
     if (!isPaused && isGameStarted) {
       setPausas(pausas + 1);
     }
@@ -1268,11 +1277,19 @@ export default function Home() {
           if (!tempoFim) {
             setTempoFim(Date.now()); // Salva apenas quando chega a zero
           }
+          // Tocar o som do apito quando chegar a zero
+          new Audio("/apito.webm").play();
+          // Remover a posse da bola quando o timer chega a zero
+          if (posseBola) {
+            removerPosseBola();
+          }
+          // Pausar o jogo automaticamente
+          setIsPaused(true);
         }
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [isPaused, seconds, tempoFim]);
+  }, [isPaused, seconds, tempoFim, posseBola, removerPosseBola]);
 
   // Função para formatar o tempo em MM:SS ou apenas segundos
   const formatarTempo = (segundos: number) => {
@@ -1720,7 +1737,11 @@ export default function Home() {
           <div className='w-full h-auto mt-10 flex items-center gap-10 justify-center'>
             {isPaused ? (
               <div className='flex mb-10 flex-col pt-10 items-center justify-center'>
-                <AiFillPlayCircle size={120} onClick={handleTimerToggle} />
+                {seconds > 0 ? (
+                  <AiFillPlayCircle size={120} onClick={handleTimerToggle} className="cursor-pointer hover:opacity-80" />
+                ) : (
+                  <AiFillPlayCircle size={120} className="opacity-50 cursor-not-allowed" />
+                )}
                 <div className=''>
                   <p className='mt-10 '>{translations.tempoJogo} - {translations.segundos}</p>
                   {/* <p className='mt-10 '>Tempo de Jogo - SEGUNDOS</p> */}
@@ -1932,7 +1953,11 @@ export default function Home() {
             </div>
             <button
               className="w-full sm:w-auto px-5 py-2.5 bg-red-500 rounded-md hover:bg-red-600 font-medium text-center"
-              onClick={resetarTudo}
+              onClick={() => {
+                if (confirm("Are you sure you want to reset all data? This action cannot be undone.")) {
+                  resetarTudo();
+                }
+              }}
             >
               {translations.resetarTudo}
             </button>

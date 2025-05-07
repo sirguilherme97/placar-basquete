@@ -5,13 +5,15 @@ import { VscDebugRestart } from "react-icons/vsc";
 import { GiWhistle, GiCardPlay } from "react-icons/gi";
 
 interface Jogador {
-  id: number;
+  id: number; // Número único (timestamp)
   nome: string;
   pontos: number;
   faltas: number;
   eficiencia?: number;
-  time: 'A' | 'B';
+  time: 'A' | 'B' | null;
   tempoPosse?: number; // Tempo em segundos que o jogador teve a posse
+  stamina: number; // Nova propriedade para controlar a estamina do jogador
+  historicoTimes?: { time: 'A' | 'B', pontos: number, faltas: number }[]; // Histórico de times
 }
 
 interface Falta {
@@ -45,11 +47,11 @@ interface Game {
   isPaused: boolean;
   isGameStarted: boolean;
   posseBola: { time: 'A' | 'B', jogadorId: number } | null;
-  showPosseBola: boolean;
   ultimaAtualizacaoPosse: number | null;
   tempoInicio: number | null;
   tempoFim: number | null;
   tempoJogo?: number; // Tempo de jogo em segundos
+  jogadoresBanco?: Jogador[]; // Lista de jogadores no banco
 }
 
 interface HistoricoCombinado {
@@ -81,6 +83,7 @@ interface GameStats {
 interface EstadoJogo {
   jogadoresA: Jogador[];
   jogadoresB: Jogador[];
+  jogadoresBanco: Jogador[];
   historicoA: Ponto[];
   historicoB: Ponto[];
   faltas: Falta[];
@@ -96,7 +99,6 @@ interface EstadoJogo {
   isPaused: boolean;
   isGameStarted: boolean;
   posseBola: { time: 'A' | 'B', jogadorId: number } | null;
-  showPosseBola: boolean;
   ultimaAtualizacaoPosse: number | null;
   tempoInicio: number | null;
   tempoFim: number | null;
@@ -116,6 +118,7 @@ export default function Home() {
   const [timeBName, setTimeBName] = useState("Time B"); // Estado para armazenar o nome do Time B
   const [jogadoresA, setJogadoresA] = useState<Jogador[]>([]);
   const [jogadoresB, setJogadoresB] = useState<Jogador[]>([]);
+  const [jogadoresBanco, setJogadoresBanco] = useState<Jogador[]>([]);
   const [historicoA, setHistoricoA] = useState<Ponto[]>([]);
   const [historicoB, setHistoricoB] = useState<Ponto[]>([]);
   const [showPopover, setShowPopover] = useState(false);
@@ -138,11 +141,13 @@ export default function Home() {
   const [selectedPlayer, setSelectedPlayer] = useState<Jogador | null>(null);
   const [showPlayerDetails, setShowPlayerDetails] = useState(false);
   const [posseBola, setPosseBola] = useState<{ time: 'A' | 'B', jogadorId: number } | null>(null);
-  const [showPosseBola, setShowPosseBola] = useState(false);
   const [ultimaAtualizacaoPosse, setUltimaAtualizacaoPosse] = useState<number | null>(null);
   const [tempoInicio, setTempoInicio] = useState<number | null>(null);
   const [tempoFim, setTempoFim] = useState<number | null>(null);
   const [aproveitamento, setAproveitamento] = useState<EstadoJogo['aproveitamento'] | null>(null);
+  const [showAddBenchPlayerPopover, setShowAddBenchPlayerPopover] = useState(false);
+  const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
+  const [jogadorParaRemover, setJogadorParaRemover] = useState<Jogador | null>(null);
 
   function StartSound() {
     new Audio("/apito.webm").play();
@@ -192,33 +197,73 @@ export default function Home() {
   // Carregar dados do localStorage ao iniciar
   useEffect(() => {
     try {
-    const savedJogadoresA = localStorage.getItem('jogadoresA');
-    const savedJogadoresB = localStorage.getItem('jogadoresB');
-    const savedHistoricoA = localStorage.getItem('historicoA');
-    const savedHistoricoB = localStorage.getItem('historicoB');
-    const savedFaltas = localStorage.getItem('faltas');
-    const savedTimeAName = localStorage.getItem('timeAName');
-    const savedTimeBName = localStorage.getItem('timeBName');
-    const savedGames = localStorage.getItem('games');
-    const savedPausas = localStorage.getItem('pausas');
-    const savedFaltasA = localStorage.getItem('faltasA');
-    const savedFaltasB = localStorage.getItem('faltasB');
+      const savedJogadoresA = localStorage.getItem('jogadoresA');
+      const savedJogadoresB = localStorage.getItem('jogadoresB');
+      const savedJogadoresBanco = localStorage.getItem('jogadoresBanco');
+      const savedHistoricoA = localStorage.getItem('historicoA');
+      const savedHistoricoB = localStorage.getItem('historicoB');
+      const savedFaltas = localStorage.getItem('faltas');
+      const savedTimeAName = localStorage.getItem('timeAName');
+      const savedTimeBName = localStorage.getItem('timeBName');
+      const savedGames = localStorage.getItem('games');
+      const savedPausas = localStorage.getItem('pausas');
+      const savedFaltasA = localStorage.getItem('faltasA');
+      const savedFaltasB = localStorage.getItem('faltasB');
       const savedPontosA = localStorage.getItem('pontosA');
       const savedPontosB = localStorage.getItem('pontosB');
       const savedSeconds = localStorage.getItem('seconds');
       const savedIsPaused = localStorage.getItem('isPaused');
 
-    if (savedJogadoresA) setJogadoresA(JSON.parse(savedJogadoresA));
-    if (savedJogadoresB) setJogadoresB(JSON.parse(savedJogadoresB));
-    if (savedHistoricoA) setHistoricoA(JSON.parse(savedHistoricoA));
-    if (savedHistoricoB) setHistoricoB(JSON.parse(savedHistoricoB));
-    if (savedFaltas) setFaltas(JSON.parse(savedFaltas));
-    if (savedTimeAName) setTimeAName(savedTimeAName);
-    if (savedTimeBName) setTimeBName(savedTimeBName);
-    if (savedGames) setGames(JSON.parse(savedGames));
-    if (savedPausas) setPausas(JSON.parse(savedPausas));
-    if (savedFaltasA) setFaltasA(JSON.parse(savedFaltasA));
-    if (savedFaltasB) setFaltasB(JSON.parse(savedFaltasB));
+      if (savedJogadoresA) {
+        const jogadoresAData = JSON.parse(savedJogadoresA);
+        setJogadoresA(jogadoresAData.map((j: Jogador) => ({
+          ...j,
+          stamina: j.stamina || 100
+        })));
+      }
+
+      if (savedJogadoresB) {
+        const jogadoresBData = JSON.parse(savedJogadoresB);
+        setJogadoresB(jogadoresBData.map((j: Jogador) => ({
+          ...j,
+          stamina: j.stamina || 100
+        })));
+      }
+
+      if (savedJogadoresBanco) {
+        const jogadoresBancoData = JSON.parse(savedJogadoresBanco);
+        setJogadoresBanco(jogadoresBancoData.map((j: Jogador) => ({
+          ...j,
+          stamina: j.stamina || 100
+        })));
+      }
+
+      if (savedHistoricoA) setHistoricoA(JSON.parse(savedHistoricoA));
+      if (savedHistoricoB) setHistoricoB(JSON.parse(savedHistoricoB));
+      if (savedFaltas) setFaltas(JSON.parse(savedFaltas));
+      if (savedTimeAName) setTimeAName(savedTimeAName);
+      if (savedTimeBName) setTimeBName(savedTimeBName);
+      if (savedGames) {
+        const gamesData = JSON.parse(savedGames);
+        setGames(gamesData.map((game: Game) => ({
+          ...game,
+          jogadoresA: game.jogadoresA.map((j: Jogador) => ({
+            ...j,
+            stamina: j.stamina || 100
+          })),
+          jogadoresB: game.jogadoresB.map((j: Jogador) => ({
+            ...j,
+            stamina: j.stamina || 100
+          })),
+          jogadoresBanco: game.jogadoresBanco ? game.jogadoresBanco.map((j: Jogador) => ({
+            ...j,
+            stamina: j.stamina || 100
+          })) : []
+        })));
+      }
+      if (savedPausas) setPausas(JSON.parse(savedPausas));
+      if (savedFaltasA) setFaltasA(JSON.parse(savedFaltasA));
+      if (savedFaltasB) setFaltasB(JSON.parse(savedFaltasB));
       if (savedPontosA) setPontosA(JSON.parse(savedPontosA));
       if (savedPontosB) setPontosB(JSON.parse(savedPontosB));
       if (savedSeconds) setSeconds(JSON.parse(savedSeconds));
@@ -234,6 +279,7 @@ export default function Home() {
   const resetarTudo = () => {
     setJogadoresA([]);
     setJogadoresB([]);
+    setJogadoresBanco([]);
     setHistoricoA([]);
     setHistoricoB([]);
     setPontosA(0);
@@ -248,7 +294,6 @@ export default function Home() {
     setPausas(0);
     setIsGameStarted(false);
     setPosseBola(null);
-    setShowPosseBola(false);
     setUltimaAtualizacaoPosse(null);
     setTempoInicio(null); // Zera tempo de início
     setTempoFim(null);   // Zera tempo de fim
@@ -261,6 +306,7 @@ export default function Home() {
     // Limpar localStorage
     localStorage.removeItem('jogadoresA');
     localStorage.removeItem('jogadoresB');
+    localStorage.removeItem('jogadoresBanco');
     localStorage.removeItem('historicoA');
     localStorage.removeItem('historicoB');
     localStorage.removeItem('faltas');
@@ -292,6 +338,7 @@ export default function Home() {
           resetarTudo();
           if (Array.isArray(dados.jogadoresA)) setJogadoresA(dados.jogadoresA.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
           if (Array.isArray(dados.jogadoresB)) setJogadoresB(dados.jogadoresB.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })));
+          if (Array.isArray(dados.jogadoresBanco)) setJogadoresBanco(dados.jogadoresBanco.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })));
           if (Array.isArray(dados.historicoA)) setHistoricoA(dados.historicoA);
           if (Array.isArray(dados.historicoB)) setHistoricoB(dados.historicoB);
           if (Array.isArray(dados.faltas)) setFaltas(dados.faltas);
@@ -309,8 +356,8 @@ export default function Home() {
             tempoJogo: game.tempoJogo || 0,
             tempoInicio: game.tempoInicio || null,
             tempoFim: game.tempoFim || null,
-            jogadoresA: game.jogadoresA.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
-            jogadoresB: game.jogadoresB.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }))
+            jogadoresA: game.jogadoresA.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })),
+            jogadoresB: game.jogadoresB.map((j: Jogador) => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 }))
           })));
           if (typeof dados.tempoInicio === 'number') setTempoInicio(Math.floor(dados.tempoInicio));
           if (typeof dados.tempoFim === 'number') setTempoFim(Math.floor(dados.tempoFim));
@@ -328,12 +375,33 @@ export default function Home() {
   // Função para salvar estado no localStorage
   const salvarEstado = () => {
     try {
-      // Garantir que todos os tempos estejam em segundos (número)
-      const jogadoresAEmSegundos = jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }));
-      const jogadoresBEmSegundos = jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }));
+      // Garantir que todos os jogadores tenham campos com valores padrão, se ausentes
+      const jogadoresAEmSegundos = jogadoresA.map(j => ({
+        ...j,
+        tempoPosse: Math.floor(j.tempoPosse || 0),
+        stamina: j.stamina || 100,
+        pontos: j.pontos || 0,
+        faltas: j.faltas || 0
+      }));
+      const jogadoresBEmSegundos = jogadoresB.map(j => ({
+        ...j,
+        tempoPosse: Math.floor(j.tempoPosse || 0),
+        stamina: j.stamina || 100,
+        pontos: j.pontos || 0,
+        faltas: j.faltas || 0
+      }));
+      const jogadoresBancoEmSegundos = jogadoresBanco.map(j => ({
+        ...j,
+        tempoPosse: Math.floor(j.tempoPosse || 0),
+        stamina: j.stamina || 100,
+        pontos: j.pontos || 0,
+        faltas: j.faltas || 0,
+        time: null as null // Garantir que está marcado como banco
+      }));
       const estado: EstadoJogo = {
         jogadoresA: jogadoresAEmSegundos,
         jogadoresB: jogadoresBEmSegundos,
+        jogadoresBanco: jogadoresBancoEmSegundos,
         historicoA,
         historicoB,
         faltas,
@@ -349,7 +417,6 @@ export default function Home() {
         isPaused,
         isGameStarted,
         posseBola,
-        showPosseBola,
         ultimaAtualizacaoPosse,
         tempoInicio: tempoInicio ? Math.floor(tempoInicio) : null,
         tempoFim: tempoFim ? Math.floor(tempoFim) : null,
@@ -360,11 +427,17 @@ export default function Home() {
         }
       };
       localStorage.setItem('estadoJogo', JSON.stringify(estado));
+      localStorage.setItem('jogadoresA', JSON.stringify(jogadoresAEmSegundos));
+      localStorage.setItem('jogadoresB', JSON.stringify(jogadoresBEmSegundos));
+      localStorage.setItem('jogadoresBanco', JSON.stringify(jogadoresBancoEmSegundos));
       localStorage.setItem('tempoInicio', tempoInicio ? Math.floor(tempoInicio).toString() : '');
       localStorage.setItem('tempoFim', tempoFim ? Math.floor(tempoFim).toString() : '');
       localStorage.setItem('pontosA', JSON.stringify(pontosA));
       localStorage.setItem('pontosB', JSON.stringify(pontosB));
       localStorage.setItem('seconds', JSON.stringify(Math.floor(seconds)));
+      localStorage.setItem('isPaused', JSON.stringify(isPaused));
+      localStorage.setItem('isGameStarted', JSON.stringify(isGameStarted));
+      localStorage.setItem('games', JSON.stringify(games));
       console.log('Estado salvo com sucesso:', estado);
     } catch (error) {
       console.error('Erro ao salvar estado:', error);
@@ -375,13 +448,102 @@ export default function Home() {
   const carregarEstado = () => {
     try {
       const estadoSalvo = localStorage.getItem('estadoJogo');
+      const jogadoresBancoSalvos = localStorage.getItem('jogadoresBanco');
+      const pontosASalvos = localStorage.getItem('pontosA');
+      const pontosBSalvos = localStorage.getItem('pontosB');
+      const gamesSalvos = localStorage.getItem('games');
+      const isPausedSalvo = localStorage.getItem('isPaused');
+      const isGameStartedSalvo = localStorage.getItem('isGameStarted');
+
+      // Carregar pontos das equipes
+      if (pontosASalvos) {
+        setPontosA(JSON.parse(pontosASalvos));
+      }
+
+      if (pontosBSalvos) {
+        setPontosB(JSON.parse(pontosBSalvos));
+      }
+
+      // Carregar estado de jogo
+      if (isPausedSalvo) {
+        setIsPaused(JSON.parse(isPausedSalvo));
+      }
+
+      if (isGameStartedSalvo) {
+        setIsGameStarted(JSON.parse(isGameStartedSalvo));
+      }
+
+      // Carregar jogos salvos
+      if (gamesSalvos) {
+        const parsedGames = JSON.parse(gamesSalvos);
+        setGames(parsedGames.map((game: Game) => ({
+          ...game,
+          jogadoresA: game.jogadoresA.map((j: Jogador) => ({
+            ...j,
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100
+          })),
+          jogadoresB: game.jogadoresB.map((j: Jogador) => ({
+            ...j,
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100
+          })),
+          jogadoresBanco: game.jogadoresBanco ? game.jogadoresBanco.map((j: Jogador) => ({
+            ...j,
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100,
+            time: null as null
+          })) : []
+        })));
+      }
+
+      if (jogadoresBancoSalvos) {
+        const jogadoresBancoCarregados = JSON.parse(jogadoresBancoSalvos);
+        setJogadoresBanco(jogadoresBancoCarregados.map((j: Jogador) => ({
+          ...j,
+          stamina: j.stamina || 100,
+          pontos: j.pontos || 0,
+          faltas: j.faltas || 0,
+          time: null as null
+        })));
+      }
+
       if (estadoSalvo) {
         const estado: EstadoJogo = JSON.parse(estadoSalvo);
         console.log('Estado carregado:', estado);
 
         // Carregar todos os estados
-        if (Array.isArray(estado.jogadoresA)) setJogadoresA(estado.jogadoresA);
-        if (Array.isArray(estado.jogadoresB)) setJogadoresB(estado.jogadoresB);
+        if (Array.isArray(estado.jogadoresA)) {
+          setJogadoresA(estado.jogadoresA.map((j: Jogador) => ({
+            ...j,
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100
+          })));
+        }
+
+        if (Array.isArray(estado.jogadoresB)) {
+          setJogadoresB(estado.jogadoresB.map((j: Jogador) => ({
+            ...j,
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100
+          })));
+        }
+
+        if (Array.isArray(estado.jogadoresBanco)) {
+          setJogadoresBanco(estado.jogadoresBanco.map((j: Jogador) => ({
+            ...j,
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100,
+            time: null as null
+          })));
+        }
+
         if (Array.isArray(estado.historicoA)) setHistoricoA(estado.historicoA);
         if (Array.isArray(estado.historicoB)) setHistoricoB(estado.historicoB);
         if (Array.isArray(estado.faltas)) setFaltas(estado.faltas);
@@ -391,13 +553,12 @@ export default function Home() {
         if (typeof estado.pausas === 'number') setPausas(estado.pausas);
         if (typeof estado.faltasA === 'number') setFaltasA(estado.faltasA);
         if (typeof estado.faltasB === 'number') setFaltasB(estado.faltasB);
-        if (typeof estado.pontosA === 'number') setPontosA(estado.pontosA);
-        if (typeof estado.pontosB === 'number') setPontosB(estado.pontosB);
+        if (typeof estado.pontosA === 'number' || typeof estado.pontosA === 'string') setPontosA(estado.pontosA);
+        if (typeof estado.pontosB === 'number' || typeof estado.pontosB === 'string') setPontosB(estado.pontosB);
         if (typeof estado.seconds === 'number') setSeconds(estado.seconds);
         if (typeof estado.isPaused === 'boolean') setIsPaused(estado.isPaused);
         if (typeof estado.isGameStarted === 'boolean') setIsGameStarted(estado.isGameStarted);
         if (estado.posseBola) setPosseBola(estado.posseBola);
-        if (typeof estado.showPosseBola === 'boolean') setShowPosseBola(estado.showPosseBola);
         if (typeof estado.ultimaAtualizacaoPosse === 'number') setUltimaAtualizacaoPosse(estado.ultimaAtualizacaoPosse);
         if (typeof estado.tempoInicio === 'number') setTempoInicio(estado.tempoInicio);
         if (typeof estado.tempoFim === 'number') setTempoFim(estado.tempoFim);
@@ -426,23 +587,26 @@ export default function Home() {
 
   // Função para calcular eficiência do jogador
   const calcularEficiencia = (jogador: Jogador) => {
-    const cestas = jogador.time === 'A' 
+    // Se o jogador não está associado a nenhum time, retornar 0
+    if (jogador.time === null) return 0;
+
+    const cestas = jogador.time === 'A'
       ? historicoA.filter(p => p.jogadorId === jogador.id)
       : historicoB.filter(p => p.jogadorId === jogador.id);
-    
+
     const pontos = cestas.reduce((sum, p) => sum + p.pontos, 0);
     const faltas = jogador.faltas || 0;
     const tempoPosse = jogador.tempoPosse || 0;
-    
+
     // Calcular eficiência base: pontos por minuto de posse
     const eficienciaBase = pontos / (tempoPosse / 60 || 1); // Evitar divisão por zero
-    
+
     // Penalizar faltas: subtrair 2 pontos por falta
     const penalidadeFaltas = faltas * 2;
-    
+
     // Eficiência final: eficiência base menos penalidade de faltas
     const eficiencia = eficienciaBase - penalidadeFaltas;
-    
+
     // Retornar 0 se a eficiência for negativa
     return Math.max(0, eficiencia);
   };
@@ -454,6 +618,9 @@ export default function Home() {
     const ultimos5Minutos = Math.max(0, tempoDecorrido - 300); // 300 segundos = 5 minutos
 
     return todosJogadores.reduce((maisDecisivo, jogador) => {
+      // Ignorar jogadores sem time
+      if (jogador.time === null) return maisDecisivo;
+
       const pontosUltimos5Min = jogador.time === 'A'
         ? historicoA
           .filter(p => p.jogadorId === jogador.id)
@@ -507,7 +674,6 @@ export default function Home() {
       isPaused,
       isGameStarted,
       posseBola,
-      showPosseBola,
       ultimaAtualizacaoPosse,
       tempoInicio,
       tempoFim,
@@ -523,15 +689,40 @@ export default function Home() {
     setTimeBName(game.timeBName);
     setPontosA(game.pontosA.toString());
     setPontosB(game.pontosB.toString());
-    setJogadoresA(game.jogadoresA);
-    setJogadoresB(game.jogadoresB);
+
+    // Garantir que os jogadores tenham todos os campos necessários
+    setJogadoresA(game.jogadoresA.map(j => ({
+      ...j,
+      pontos: j.pontos || 0,
+      faltas: j.faltas || 0,
+      stamina: j.stamina || 100
+    })));
+
+    setJogadoresB(game.jogadoresB.map(j => ({
+      ...j,
+      pontos: j.pontos || 0,
+      faltas: j.faltas || 0,
+      stamina: j.stamina || 100
+    })));
+
+    // Garantir que jogadores do banco também tenham valores padrão
+    if (game.jogadoresBanco && game.jogadoresBanco.length > 0) {
+      setJogadoresBanco(game.jogadoresBanco.map(j => ({
+        ...j,
+        pontos: j.pontos || 0,
+        faltas: j.faltas || 0,
+        stamina: j.stamina || 100,
+        time: null as null // Garantir que está no banco
+      })));
+    }
+
     setHistoricoA(game.historicoA);
     setHistoricoB(game.historicoB);
     setFaltas(game.faltas);
     setFaltasA(game.faltas.filter(f => f.time === 'A').length);
     setFaltasB(game.faltas.filter(f => f.time === 'B').length);
     setPausas(game.pausas);
-    
+
     // Atualizar aproveitamento
     const novoAproveitamento: EstadoJogo['aproveitamento'] = {
       mediaPontosJogador: ((game.pontosA + game.pontosB) / (game.jogadoresA.length + game.jogadoresB.length)).toFixed(1),
@@ -539,8 +730,17 @@ export default function Home() {
       mediaPontosTimeB: (game.pontosB / game.jogadoresB.length).toFixed(1)
     };
     setAproveitamento(novoAproveitamento);
-    
+
+    // Salvar no localStorage para persistência
+    localStorage.setItem('pontosA', game.pontosA.toString());
+    localStorage.setItem('pontosB', game.pontosB.toString());
+
     setShowGamesModal(false);
+
+    // Garantir que o estado atualizado seja salvo
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
   };
 
   // Função para deletar um game salvo
@@ -595,11 +795,13 @@ export default function Home() {
         tempoJogo: game.tempoJogo || 0,
         tempoInicio: game.tempoInicio || null,
         tempoFim: game.tempoFim || null,
-        jogadoresA: game.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
-        jogadoresB: game.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) }))
+        jogadoresA: game.jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })),
+        jogadoresB: game.jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })),
+        jogadoresBanco: game.jogadoresBanco || []
       })),
-      jogadoresA: jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
-      jogadoresB: jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0) })),
+      jogadoresA: jogadoresA.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })),
+      jogadoresB: jogadoresB.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })),
+      jogadoresBanco: jogadoresBanco.map(j => ({ ...j, tempoPosse: Math.floor(j.tempoPosse || 0), stamina: j.stamina || 100 })),
       historicoA,
       historicoB,
       faltas,
@@ -627,6 +829,17 @@ export default function Home() {
 
   // Função para calcular estatísticas do jogador
   const getPlayerStats = (jogador: Jogador) => {
+    // Se o jogador não tem time, retornar valores vazios
+    if (jogador.time === null) {
+      return {
+        pontos: [],
+        faltas: [],
+        totalPontos: 0,
+        totalFaltas: 0,
+        tempoPosse: jogador.tempoPosse || 0
+      };
+    }
+
     const pontos = jogador.time === 'A'
       ? historicoA.filter(p => p.jogadorId === jogador.id)
       : historicoB.filter(p => p.jogadorId === jogador.id);
@@ -643,7 +856,7 @@ export default function Home() {
       faltas: jogadorFaltas,
       totalPontos: pontos.reduce((sum, p) => sum + p.pontos, 0),
       totalFaltas: jogadorFaltas.length,
-      tempoPosse: jogadorAtual?.tempoPosse || 0
+      tempoPosse: jogadorAtual?.tempoPosse || jogador.tempoPosse || 0
     };
   };
 
@@ -671,25 +884,27 @@ export default function Home() {
     const jogadorMaisDecisivo = getJogadorMaisDecisivo();
 
     // Calcular maior sequência de pontos por jogador
-    const sequenciasJogadores = todosJogadores.map(jogador => {
-      let sequenciaAtual = 0;
-      let maiorSequencia = 0;
+    const sequenciasJogadores = todosJogadores
+      .filter(jogador => jogador.time === 'A' || jogador.time === 'B') // Filtrar apenas jogadores com time válido
+      .map(jogador => {
+        let sequenciaAtual = 0;
+        let maiorSequencia = 0;
 
-      const historico = jogador.time === 'A' ? historicoA : historicoB;
-      historico
-        .filter(p => p.jogadorId === jogador.id)
-        .sort((a, b) => {
-          const [minA, secA] = a.tempo.split(':').map(Number);
-          const [minB, secB] = b.tempo.split(':').map(Number);
-          return (minB * 60 + secB) - (minA * 60 + secA);
-        })
-        .forEach(evento => {
-          sequenciaAtual++;
-          maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
-        });
+        const historico = jogador.time === 'A' ? historicoA : historicoB;
+        historico
+          .filter(p => p.jogadorId === jogador.id)
+          .sort((a, b) => {
+            const [minA, secA] = a.tempo.split(':').map(Number);
+            const [minB, secB] = b.tempo.split(':').map(Number);
+            return (minB * 60 + secB) - (minA * 60 + secA);
+          })
+          .forEach(evento => {
+            sequenciaAtual++;
+            maiorSequencia = Math.max(maiorSequencia, sequenciaAtual);
+          });
 
-      return { jogador, sequencia: maiorSequencia };
-    });
+        return { jogador, sequencia: maiorSequencia };
+      });
 
     // Calcular maior sequência de pontos por time
     const sequenciasTimes = [
@@ -736,21 +951,21 @@ export default function Home() {
 
   // Função para lidar com o toque e segurar no jogador
   const handleTouchStart = (jogador: Jogador) => {
-    setShowPosseBola(true);
-    setPosseBola({ time: jogador.time, jogadorId: jogador.id });
-  };
-
-  const handleTouchEnd = () => {
-    setShowPosseBola(false);
-  };
-
-  // Atualizar tempo de posse
-  useEffect(() => {
-    if (posseBola && showPosseBola && !isPaused) {
+    if (jogador.time === null) return; // Ignorar jogadores sem time
+    
+    // Verificar se é o mesmo jogador que já tem a posse
+    if (posseBola && posseBola.jogadorId === jogador.id) {
+      // Se o mesmo jogador já tem a posse, remover a posse
+      removerPosseBola();
+      return;
+    }
+    
+    // Se já havia um jogador com posse, registrar o tempo de posse do jogador anterior
+    if (posseBola) {
       const agora = Date.now();
       if (ultimaAtualizacaoPosse) {
         const tempoDecorrido = (agora - ultimaAtualizacaoPosse) / 1000; // Converter para segundos
-
+        
         if (posseBola.time === 'A') {
           setJogadoresA(jogadoresA.map(j =>
             j.id === posseBola.jogadorId
@@ -765,9 +980,103 @@ export default function Home() {
           ));
         }
       }
-      setUltimaAtualizacaoPosse(agora);
     }
-  }, [posseBola, showPosseBola, isPaused]);
+    
+    // Definir novo jogador com a posse
+    setPosseBola({ time: jogador.time as 'A' | 'B', jogadorId: jogador.id });
+    setUltimaAtualizacaoPosse(Date.now());
+    
+    // Salvar estado para garantir persistência
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
+  };
+
+  // Função para remover a posse da bola
+  const removerPosseBola = () => {
+    // Se já havia um jogador com posse, registrar o tempo de posse final
+    if (posseBola) {
+      const agora = Date.now();
+      if (ultimaAtualizacaoPosse) {
+        const tempoDecorrido = (agora - ultimaAtualizacaoPosse) / 1000; // Converter para segundos
+        
+        if (posseBola.time === 'A') {
+          setJogadoresA(jogadoresA.map(j =>
+            j.id === posseBola.jogadorId
+              ? { ...j, tempoPosse: (j.tempoPosse || 0) + tempoDecorrido }
+              : j
+          ));
+        } else {
+          setJogadoresB(jogadoresB.map(j =>
+            j.id === posseBola.jogadorId
+              ? { ...j, tempoPosse: (j.tempoPosse || 0) + tempoDecorrido }
+              : j
+          ));
+        }
+      }
+    }
+    
+    // Limpar a posse
+    setPosseBola(null);
+    setUltimaAtualizacaoPosse(null);
+    
+    // Salvar estado
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
+  };
+
+  const handleTouchEnd = () => {
+    // Não desativamos mais a posse ao soltar, ela permanece ativa
+    // até que outro jogador seja clicado ou a posse seja removida explicitamente
+  };
+
+  // Atualizar tempo de posse
+  useEffect(() => {
+    // Só contar tempo de posse se:
+    // 1. Tem posseBola definida (não é null)
+    // 2. O jogadorId é maior que 0 (evita problemas com ID 0)
+    // 3. O jogo não está pausado
+    if (posseBola && posseBola.jogadorId > 0 && !isPaused) {
+      const intervalId = setInterval(() => {
+        const agora = Date.now();
+        if (ultimaAtualizacaoPosse) {
+          const tempoDecorrido = (agora - ultimaAtualizacaoPosse) / 1000; // Converter para segundos
+
+          if (posseBola.time === 'A') {
+            // Verificar se o jogador existe no time A
+            const jogadorExiste = jogadoresA.some(j => j.id === posseBola.jogadorId);
+            if (jogadorExiste) {
+              setJogadoresA(jogadoresA.map(j =>
+                j.id === posseBola.jogadorId
+                  ? { ...j, tempoPosse: (j.tempoPosse || 0) + tempoDecorrido }
+                  : j
+              ));
+            } else {
+              // Se o jogador não existe mais, remover a posse
+              removerPosseBola();
+            }
+          } else if (posseBola.time === 'B') {
+            // Verificar se o jogador existe no time B
+            const jogadorExiste = jogadoresB.some(j => j.id === posseBola.jogadorId);
+            if (jogadorExiste) {
+              setJogadoresB(jogadoresB.map(j =>
+                j.id === posseBola.jogadorId
+                  ? { ...j, tempoPosse: (j.tempoPosse || 0) + tempoDecorrido }
+                  : j
+              ));
+            } else {
+              // Se o jogador não existe mais, remover a posse
+              removerPosseBola();
+            }
+          }
+          setUltimaAtualizacaoPosse(agora);
+        }
+      }, 1000); // Atualizar a cada segundo para maior precisão
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [posseBola, isPaused, jogadoresA, jogadoresB, ultimaAtualizacaoPosse]);
 
   // Funções para reiniciar os valores do Time A e Time B
   const handleRestartA = () => {
@@ -862,12 +1171,13 @@ export default function Home() {
     if (!newPlayerName.trim()) return;
 
     const novoJogador: Jogador = {
-      id: teamToAddPlayer === 'A' ? jogadoresA.length + 1 : jogadoresB.length + 1,
+      id: Date.now(), // Usar timestamp para garantir ID único
       nome: newPlayerName.trim(),
       pontos: 0,
       faltas: 0,
       time: teamToAddPlayer,
-      tempoPosse: 0
+      tempoPosse: 0,
+      stamina: 100
     };
 
     if (teamToAddPlayer === 'A') {
@@ -930,7 +1240,7 @@ export default function Home() {
     jogadoresA, jogadoresB, historicoA, historicoB, faltas,
     timeAName, timeBName, games, pausas, faltasA, faltasB,
     pontosA, pontosB, seconds, isPaused, isGameStarted,
-    posseBola, showPosseBola, ultimaAtualizacaoPosse,
+    posseBola, ultimaAtualizacaoPosse,
     tempoInicio, tempoFim
   ]);
 
@@ -959,6 +1269,227 @@ export default function Home() {
       localStorage.setItem('estadoJogo', JSON.stringify(estado));
     }
   }, [pontosA, pontosB, jogadoresA, jogadoresB]);
+
+  // Função para adicionar jogador ao banco
+  const adicionarJogadorAoBanco = () => {
+    if (!newPlayerName.trim()) return;
+
+    const novoJogador: Jogador = {
+      id: Date.now(), // Usar timestamp para garantir ID único
+      nome: newPlayerName.trim(),
+      pontos: 0,
+      faltas: 0,
+      time: null as null,
+      tempoPosse: 0,
+      stamina: 100, // Sempre começar com estamina cheia
+      historicoTimes: [] // Iniciar com histórico vazio
+    };
+
+    setJogadoresBanco([...jogadoresBanco, novoJogador]);
+    setShowAddBenchPlayerPopover(false);
+    setNewPlayerName('');
+
+    // Salvar estado imediatamente para não perder o jogador
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
+  };
+
+  // Função para mover jogador do banco para um time
+  const adicionarAoTime = (jogador: Jogador, time: 'A' | 'B') => {
+    // Verificar se o jogador já jogou nesse time antes
+    const historico = jogador.historicoTimes || [];
+    const ultimoTime = jogador.time;
+    let historicoAtualizado = [...historico];
+
+    // Se o jogador já estava em um time, guardar seus dados naquele time
+    if (ultimoTime === 'A' || ultimoTime === 'B') {
+      const pontosSalvos = jogador.pontos;
+      const faltasSalvos = jogador.faltas;
+
+      // Adicionar ao histórico
+      historicoAtualizado.push({
+        time: ultimoTime,
+        pontos: pontosSalvos,
+        faltas: faltasSalvos
+      });
+    }
+
+    // Não manipular a stamina aqui, ela só deve mudar com o tempo de jogo
+    // Atualizar o jogador com seu novo time, mantendo pontos, faltas e stamina
+    const jogadorAtualizado: Jogador = {
+      ...jogador,
+      id: Date.now(), // Gerar um novo ID único baseado em timestamp
+      time: time,
+      historicoTimes: historicoAtualizado
+      // Mantém stamina, pontos e faltas do jogador
+    };
+
+    // Remover jogador do banco
+    setJogadoresBanco(jogadoresBanco.filter(j => j.id !== jogador.id));
+
+    // Adicionar ao time correspondente
+    if (time === 'A') {
+      setJogadoresA([...jogadoresA, jogadorAtualizado]);
+    } else {
+      setJogadoresB([...jogadoresB, jogadorAtualizado]);
+    }
+  };
+
+  // Função para retornar jogador ao banco
+  const voltarParaBanco = (jogador: Jogador) => {
+    const time = jogador.time;
+
+    // Se o jogador não tem time, não fazer nada
+    if (time !== 'A' && time !== 'B') return;
+
+    // Guardar histórico antes de voltar para o banco
+    const historico = jogador.historicoTimes || [];
+    const historicoAtualizado = [...historico, {
+      time,
+      pontos: jogador.pontos,
+      faltas: jogador.faltas
+    }];
+
+    // Não manipular a stamina aqui, ela só deve mudar com o tempo de jogo
+    // Atualizar o jogador para o banco, mantendo todas as estatísticas
+    const jogadorAtualizado: Jogador = {
+      ...jogador,
+      id: Date.now(), // Gerar um novo ID único baseado em timestamp
+      time: null as null,
+      historicoTimes: historicoAtualizado
+      // Mantém stamina, pontos e faltas do jogador
+    };
+
+    // Remover do time atual
+    if (time === 'A') {
+      setJogadoresA(jogadoresA.filter(j => j.id !== jogador.id));
+    } else {
+      setJogadoresB(jogadoresB.filter(j => j.id !== jogador.id));
+    }
+
+    // Adicionar ao banco
+    setJogadoresBanco([...jogadoresBanco, jogadorAtualizado]);
+  };
+
+  // Atualizar efeito para reduzir stamina apenas durante o jogo em andamento
+  useEffect(() => {
+    if (!isPaused && isGameStarted) {
+      const intervalId = setInterval(() => {
+        // Reduzir stamina de jogadores que estão em times A
+        setJogadoresA(prevJogadores => {
+          return prevJogadores.map(j => {
+            // Verificar se este jogador tem a posse da bola
+            // Só considerar a posse se o jogadorId for maior que 0 e o time for A
+            const temPosseBola = posseBola && 
+                                posseBola.jogadorId > 0 && 
+                                posseBola.jogadorId === j.id && 
+                                posseBola.time === 'A';
+            
+            // Calcular a nova stamina
+            const taxaReducao = temPosseBola ? 2.0 : 0.5; // Dobrar a taxa para quem tem a bola
+            const novaStamina = Math.max(10, (j.stamina || 100) - taxaReducao);
+            
+            return {
+              ...j,
+              stamina: novaStamina
+            };
+          });
+        });
+        
+        // Reduzir stamina de jogadores que estão em times B
+        setJogadoresB(prevJogadores => {
+          return prevJogadores.map(j => {
+            // Verificar se este jogador tem a posse da bola
+            // Só considerar a posse se o jogadorId for maior que 0 e o time for B
+            const temPosseBola = posseBola && 
+                                posseBola.jogadorId > 0 && 
+                                posseBola.jogadorId === j.id && 
+                                posseBola.time === 'B';
+            
+            // Calcular a nova stamina
+            const taxaReducao = temPosseBola ? 2.0 : 0.5; // Dobrar a taxa para quem tem a bola
+            const novaStamina = Math.max(10, (j.stamina || 100) - taxaReducao);
+            
+            return {
+              ...j,
+              stamina: novaStamina
+            };
+          });
+        });
+      }, 2000); // Reduzir para 2 segundos para tornar o efeito mais perceptível
+      
+      return () => clearInterval(intervalId);
+    }
+  }, [isPaused, isGameStarted, posseBola]);
+
+  // Novo useEffect para recuperar stamina dos jogadores no banco independente do estado do jogo
+  useEffect(() => {
+    const bancoIntervalId = setInterval(() => {
+      // Recuperar stamina dos jogadores no banco (2x mais rápido) mesmo com jogo pausado
+      if (jogadoresBanco.length > 0) {
+        setJogadoresBanco(jogadoresBanco.map(j => ({
+          ...j,
+          stamina: Math.min(100, (j.stamina || 100) + 0.8)
+        })));
+      }
+    }, 3000); // A cada 3 segundos
+
+    return () => clearInterval(bancoIntervalId);
+  }, [jogadoresBanco, setJogadoresBanco]);
+
+  // Função para abrir o popover de adicionar jogador ao banco
+  const openAddBenchPlayerPopover = () => {
+    setNewPlayerName('');
+    setShowAddBenchPlayerPopover(true);
+  };
+
+  // Função para abrir o modal de falta
+  const abrirModalFalta = (time: 'A' | 'B') => {
+    setSelectedFaltaTeam(time);
+    setShowFaltaModal(true);
+  };
+
+  // Função para iniciar o processo de remoção de um jogador (mostra confirmação)
+  const iniciarRemocaoJogador = (jogador: Jogador) => {
+    setJogadorParaRemover(jogador);
+    setShowRemoveConfirmation(true);
+  };
+  
+  // Função para remover um jogador completamente do jogo
+  const removerJogador = () => {
+    if (!jogadorParaRemover) return;
+    
+    const jogador = jogadorParaRemover;
+    
+    // Verificar de onde remover o jogador (time A, time B ou banco)
+    if (jogador.time === 'A') {
+      setJogadoresA(jogadoresA.filter(j => j.id !== jogador.id));
+    } else if (jogador.time === 'B') {
+      setJogadoresB(jogadoresB.filter(j => j.id !== jogador.id));
+    } else {
+      setJogadoresBanco(jogadoresBanco.filter(j => j.id !== jogador.id));
+    }
+    
+    // Também remover quaisquer pontos e faltas associados
+    setHistoricoA(historicoA.filter(p => p.jogadorId !== jogador.id));
+    setHistoricoB(historicoB.filter(p => p.jogadorId !== jogador.id));
+    setFaltas(faltas.filter(f => f.jogadorId !== jogador.id));
+    
+    // Se o jogador tinha posse de bola, resetar
+    if (posseBola && posseBola.jogadorId === jogador.id) {
+      setPosseBola(null);
+    }
+    
+    // Fechar o modal de confirmação
+    setShowRemoveConfirmation(false);
+    setJogadorParaRemover(null);
+    
+    // Salvar estado após a remoção
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
+  };
 
   return (
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
@@ -1173,54 +1704,105 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className='flex flex-col pt-10 items-center justify-center'>
-                <div className="flex gap-4 mb-4">
-                  {/* Boxes dos jogadores do Time A */}
-                  <div className="flex flex-col gap-2">
-                    {jogadoresA.map((jogador) => (
-                      <div
-                        key={jogador.id}
-                        className={`p-2 rounded cursor-pointer transition-all ${posseBola?.jogadorId === jogador.id && showPosseBola
-                            ? 'bg-yellow-500 text-zinc-900'
-                            : 'bg-zinc-800 hover:bg-white hover:text-red-500'
-                          }`}
-                        onTouchStart={() => handleTouchStart(jogador)}
-                        onTouchEnd={handleTouchEnd}
-                        onMouseDown={() => handleTouchStart(jogador)}
-                        onMouseUp={handleTouchEnd}
-                        onMouseLeave={handleTouchEnd}
-                      >
-                        <p className="font-bold">{jogador.nome}</p>
-                        <p className="text-sm text-zinc-400">{jogador.pontos} pts</p>
-                      </div>
-                    ))}
-                  </div>
+              <div className='flex flex-col pt-10 items-center justify-center w-full'>
+                <div className="flex flex-col gap-4 mb-4">
 
                   {/* Botões de controle */}
-                  <div className="flex flex-col items-center">
-                <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
-                <GiWhistle onClick={StartSound} size={120} />
+                  <div className="flex flex-col items-center mx-4">
+                    <AiFillPauseCircle size={120} onClick={handleTimerToggle} />
+                    <GiWhistle onClick={StartSound} size={80} className="mt-4" />
+                    {/* Botão para remover posse da bola */}
+                    {posseBola && (
+                      <button 
+                        className="mt-4 p-3 bg-red-600 text-white rounded-full hover:bg-red-700"
+                        onClick={removerPosseBola}
+                      >
+                        Remover Posse da Bola
+                      </button>
+                    )}
                   </div>
 
-                  {/* Boxes dos jogadores do Time B */}
-                  <div className="flex flex-col gap-2">
-                    {jogadoresB.map((jogador) => (
-                      <div
-                        key={jogador.id}
-                        className={`p-2 rounded cursor-pointer transition-all ${posseBola?.jogadorId === jogador.id && showPosseBola
-                            ? 'bg-yellow-500 text-zinc-900'
-                            : 'bg-zinc-800 hover:bg-white hover:text-blue-500'
-                          }`}
-                        onTouchStart={() => handleTouchStart(jogador)}
-                        onTouchEnd={handleTouchEnd}
-                        onMouseDown={() => handleTouchStart(jogador)}
-                        onMouseUp={handleTouchEnd}
-                        onMouseLeave={handleTouchEnd}
-                      >
-                        <p className="font-bold">{jogador.nome}</p>
-                        <p className="text-sm text-zinc-400">{jogador.pontos} pts</p>
-                      </div>
-                    ))}
+                  <div className='w-full flex '>
+                    {/* Boxes dos jogadores do Time A */}
+                    <div className="flex flex-col gap-2 w-full">
+                      {/* Cards dos jogadores do Time A durante o jogo */}
+                      {jogadoresA.map((jogador) => {
+                        // Verificar se este jogador tem a posse da bola
+                        const temPosseBola = posseBola && posseBola.jogadorId > 0 && posseBola.jogadorId === jogador.id && posseBola.time === 'A';
+                        
+                        return (
+                          <div
+                            key={`jogo-timeA-${jogador.id}`}
+                            className={`p-3 rounded cursor-pointer transition-all w-44 ${
+                              temPosseBola
+                                ? 'bg-white text-zinc-900 border-2 border-zinc-800 shadow-lg'
+                                : 'bg-zinc-800'
+                            }`}
+                            onClick={() => handleTouchStart(jogador)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <p className="font-bold">{jogador.nome}</p>
+                              <span className="text-xs px-1 py-0.5 rounded bg-red-600 text-white">{jogador.faltas}</span>
+                            </div>
+                            <p className="text-sm font-bold mt-1">{jogador.pontos} pts</p>
+                            
+                            {/* Barra de stamina */}
+                            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
+                              <div 
+                                className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
+                                  jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${jogador.stamina || 100}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Boxes dos jogadores do Time B */}
+                    <div className="flex flex-col gap-2 w-full">
+                      {jogadoresB.map((jogador) => {
+                        // Verificar se este jogador tem a posse da bola
+                        const temPosseBola = posseBola && posseBola.jogadorId > 0 && posseBola.jogadorId === jogador.id && posseBola.time === 'B';
+                        
+                        return (
+                          <div
+                            key={`jogo-timeB-${jogador.id}`}
+                            className={`p-3 rounded cursor-pointer transition-all w-44 ${
+                              temPosseBola
+                                ? 'bg-white text-zinc-900 border-2 border-zinc-800 shadow-lg'
+                                : 'bg-zinc-800'
+                            }`}
+                            onClick={() => handleTouchStart(jogador)}
+                          >
+                            <div className="flex justify-between items-start">
+                              <p className="font-bold">{jogador.nome}</p>
+                              <span className="text-xs px-1 py-0.5 rounded bg-red-600 text-white">{jogador.faltas}</span>
+                            </div>
+                            <p className="text-sm font-bold mt-1">{jogador.pontos} pts</p>
+                            
+                            {/* Indicador de posse de bola */}
+                            
+                            {/* Barra de stamina */}
+                            <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
+                              <div 
+                                className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
+                                  jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${jogador.stamina || 100}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-400 mt-1">
+                              Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1235,7 +1817,7 @@ export default function Home() {
                 <div className="space-y-2">
                   {(selectedTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
                     <button
-                      key={jogador.id}
+                      key={`popover-${selectedTeam}-${jogador.id}`}
                       className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
                       onClick={() => registrarPonto(jogador.id)}
                     >
@@ -1250,24 +1832,6 @@ export default function Home() {
                   Cancelar
                 </button>
               </div>
-            </div>
-          )}
-
-          {/* Botões para adicionar jogadores */}
-          {isPaused && (
-            <div className="flex justify-center gap-4 mt-5 mb-10">
-              <button
-                className="px-4 py-2 bg-red-500 rounded hover:bg-red-600"
-                onClick={() => openAddPlayerPopover('A')}
-              >
-                Adicionar Jogador A
-              </button>
-              <button
-                className="px-4 py-2 bg-blue-500 rounded hover:bg-blue-600"
-                onClick={() => openAddPlayerPopover('B')}
-              >
-                Adicionar Jogador B
-              </button>
             </div>
           )}
 
@@ -1342,7 +1906,7 @@ export default function Home() {
                     const lancesLivres = stats.pontos.filter(p => p.pontos === 1).length;
                     return (
                       <div
-                        key={jogador.id}
+                        key={`stats-timeA-${jogador.id}`}
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
@@ -1353,21 +1917,21 @@ export default function Home() {
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">3pts:</span>
                                 <span className="text-sm">{cestas3pts} cestas ({cestas3pts * 3} pts)</span>
-                </div>
+                              </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">2pts:</span>
                                 <span className="text-sm">{cestas2pts} cestas ({cestas2pts * 2} pts)</span>
-                </div>
+                              </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">1pt:</span>
                                 <span className="text-sm">{lancesLivres} lances ({lancesLivres} pts)</span>
-              </div>
-              </div>
+                              </div>
+                            </div>
                             {stats.totalFaltas > 0 && (
                               <div className="flex items-center gap-1 mt-2">
                                 <GiCardPlay className="text-red-500" size={20} />
                                 <span className="text-sm text-red-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
-            </div>
+                              </div>
                             )}
                             <div className="mt-2">
                               <span className="text-sm text-zinc-400">Posse: {formatarTempo(jogador.tempoPosse || 0)}</span>
@@ -1395,7 +1959,7 @@ export default function Home() {
                     const lancesLivres = stats.pontos.filter(p => p.pontos === 1).length;
                     return (
                       <div
-                        key={jogador.id}
+                        key={`stats-timeB-${jogador.id}`}
                         className="bg-zinc-800 p-4 rounded-lg cursor-pointer hover:bg-zinc-700"
                         onClick={() => showPlayerInfo(jogador)}
                       >
@@ -1484,7 +2048,7 @@ export default function Home() {
                   >
                     Fechar
                   </button>
-              </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-zinc-700 p-4 rounded-lg">
                     <h3 className="text-xl font-bold mb-2">Estatísticas Gerais</h3>
@@ -1492,7 +2056,7 @@ export default function Home() {
                       <div className="flex justify-between">
                         <span>Time:</span>
                         <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
-            </div>
+                      </div>
                       <div className="flex justify-between">
                         <span>Total de Pontos:</span>
                         <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
@@ -1633,23 +2197,23 @@ export default function Home() {
           {/* Top 3 MVP */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
             <h3 className="text-xl font-bold mb-4">Top 3 MVP</h3>
-              {getTop3MVP().length > 0 ? (
-                <div className="space-y-2">
-                  {getTop3MVP().map((jogador, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <div>
-                        <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
-                        <p className="text-sm text-zinc-400">
-                          {jogador.time === 'A' ? timeAName : timeBName}
-                        </p>
-                      </div>
-                      <p className="text-xl font-bold">{jogador.pontos} pts</p>
+            {getTop3MVP().length > 0 ? (
+              <div className="space-y-2">
+                {getTop3MVP().map((jogador, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <div>
+                      <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
+                      <p className="text-sm text-zinc-400">
+                        {jogador.time === 'A' ? timeAName : timeBName}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
-              )}
+                    <p className="text-xl font-bold">{jogador.pontos} pts</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
+            )}
           </div>
 
           {/* Destaques */}
@@ -1662,7 +2226,7 @@ export default function Home() {
                   const jogadorMaisEficiente = getGameStats().jogadorMaisEficiente;
                   if (!jogadorMaisEficiente) return <></>;
                   const eficiencia = calcularEficiencia(jogadorMaisEficiente);
-                      return (
+                  return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMaisEficiente.nome}</p>
                       <p className="text-sm text-zinc-400">{eficiencia.toFixed(1)} pts/min</p>
@@ -1674,10 +2238,10 @@ export default function Home() {
                           {jogadorMaisEficiente.faltas} falta{jogadorMaisEficiente.faltas !== 1 ? 's' : ''}
                         </p>
                       )}
-                        </div>
-                      );
+                    </div>
+                  );
                 })()}
-                </div>
+              </div>
 
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">Jogador com Menos Faltas</h4>
@@ -1692,7 +2256,7 @@ export default function Home() {
                     <div>
                       <p className="text-lg font-bold">{jogadorMenosFaltas.nome}</p>
                       <p className="text-sm text-zinc-400">{jogadorMenosFaltas.faltas} falta{jogadorMenosFaltas.faltas !== 1 ? 's' : ''}</p>
-              </div>
+                    </div>
                   );
                 })()}
               </div>
@@ -1707,7 +2271,7 @@ export default function Home() {
                   }, null as Jogador | null);
                   if (!jogadorMaisPosse) return <></>;
                   return (
-              <div>
+                    <div>
                       <p className="text-lg font-bold">{jogadorMaisPosse.nome}</p>
                       <p className="text-sm text-zinc-400">{formatarTempo(jogadorMaisPosse.tempoPosse || 0)}</p>
                     </div>
@@ -1727,11 +2291,11 @@ export default function Home() {
                     return mais3pts;
                   }, null as (Jogador & { cestas3pts: number }) | null);
                   if (!jogadorMais3pts) return <></>;
-                      return (
+                  return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMais3pts.nome}</p>
                       <p className="text-sm text-zinc-400">{jogadorMais3pts.cestas3pts} cestas de 3 pontos</p>
-                          </div>
+                    </div>
                   );
                 })()}
               </div>
@@ -1749,12 +2313,12 @@ export default function Home() {
                     <div>
                       <p className="text-lg font-bold">{jogadorMaisPontos.nome}</p>
                       <p className="text-sm text-zinc-400">{jogadorMaisPontos.pontos} pontos</p>
-                        </div>
-                      );
+                    </div>
+                  );
                 })()}
-                </div>
               </div>
             </div>
+          </div>
 
           {/* Outros */}
           <div className="bg-zinc-800 p-4 rounded-lg">
@@ -1775,9 +2339,9 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">{timeAName}</h4>
-              <div className="space-y-2">
+                <div className="space-y-2">
                   {jogadoresA.map((jogador) => (
-                    <div key={jogador.id} className="flex justify-between items-center">
+                    <div key={`posse-timeA-${jogador.id}`} className="flex justify-between items-center">
                       <span>{jogador.nome}</span>
                       <span className="font-bold">
                         {formatarTempo(jogador.tempoPosse || 0)}
@@ -1790,45 +2354,45 @@ export default function Home() {
                 <h4 className="text-lg font-bold mb-2">{timeBName}</h4>
                 <div className="space-y-2">
                   {jogadoresB.map((jogador) => (
-                    <div key={jogador.id} className="flex justify-between items-center">
+                    <div key={`posse-timeB-${jogador.id}`} className="flex justify-between items-center">
                       <span>{jogador.nome}</span>
                       <span className="font-bold">
                         {formatarTempo(jogador.tempoPosse || 0)}
                       </span>
-                  </div>
-                ))}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-              </div>
-            </div>
-          )}
+          </div>
+        </div>
+      )}
 
-          {/* Modal de falta */}
-          {showFaltaModal && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-zinc-800 p-4 rounded-lg w-80">
-                <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
+      {/* Modal de falta */}
+      {showFaltaModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-zinc-800 p-4 rounded-lg w-80">
+            <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
             <div className="space-y-2">
               <div className="flex gap-2">
-                  <button
+                <button
                   className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'A' ? 'bg-red-500' : 'bg-zinc-700'}`}
-                    onClick={() => setSelectedFaltaTeam('A')}
-                  >
+                  onClick={() => setSelectedFaltaTeam('A')}
+                >
                   {timeAName}
-                  </button>
-                  <button
+                </button>
+                <button
                   className={`flex-1 p-2 rounded ${selectedFaltaTeam === 'B' ? 'bg-blue-500' : 'bg-zinc-700'}`}
-                    onClick={() => setSelectedFaltaTeam('B')}
-                  >
+                  onClick={() => setSelectedFaltaTeam('B')}
+                >
                   {timeBName}
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
-                    <button
-                      key={jogador.id}
-                      className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                </button>
+              </div>
+              <div className="space-y-2">
+                {(selectedFaltaTeam === 'A' ? jogadoresA : jogadoresB).map((jogador) => (
+                  <button
+                    key={`falta-${selectedFaltaTeam}-${jogador.id}`}
+                    className="w-full p-2 bg-zinc-700 rounded hover:bg-zinc-600"
                     onClick={() => {
                       const tempoAtual = `${minutes}:${formattedSeconds}`;
                       const novaFalta: Falta = {
@@ -1850,19 +2414,286 @@ export default function Home() {
                       }
                       setShowFaltaModal(false);
                     }}
-                    >
-                      {jogador.nome}
-                    </button>
-                  ))}
+                  >
+                    {jogador.nome}
+                  </button>
+                ))}
               </div>
-                </div>
-                <button
-                  className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
-                  onClick={() => setShowFaltaModal(false)}
+            </div>
+            <button
+              className="mt-4 w-full p-2 bg-red-500 rounded hover:bg-red-600"
+              onClick={() => setShowFaltaModal(false)}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Popover para adicionar jogador ao banco */}
+      {showAddBenchPlayerPopover && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-zinc-800 p-4 rounded-lg w-80">
+            <h3 className="text-xl font-bold mb-4">Adicionar Jogador ao Banco</h3>
+            <input
+              type="text"
+              value={newPlayerName}
+              onChange={(e) => setNewPlayerName(e.target.value)}
+              placeholder="Nome do jogador"
+              className="w-full p-2 bg-zinc-700 rounded mb-4"
+              onKeyPress={(e) => e.key === 'Enter' && adicionarJogadorAoBanco()}
+            />
+            <div className="flex gap-2">
+              <button
+                className="flex-1 p-2 bg-green-500 rounded hover:bg-green-600"
+                onClick={adicionarJogadorAoBanco}
+              >
+                Adicionar
+              </button>
+              <button
+                className="flex-1 p-2 bg-red-500 rounded hover:bg-red-600"
+                onClick={() => setShowAddBenchPlayerPopover(false)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isPaused && activeTab === 'placar' && (
+        <div className="mt-5 border-t border-zinc-700 pt-4">
+          {/* Área de jogadores disponíveis (banco) */}
+          <div className="w-full px-4 py-4 bg-zinc-800 border-b border-zinc-600">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Banco de Jogadores</h2>
+              <button
+                className="px-4 py-2 bg-green-500 rounded hover:bg-green-600"
+                onClick={() => setShowAddBenchPlayerPopover(true)}
+              >
+                Adicionar Jogador
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3 ">
+              {jogadoresBanco.map((jogador, index) => (
+                <div
+                  key={`banco-${jogador.id}-${index}`}
+                  className="bg-zinc-700 p-3 rounded-lg shadow w-auto"
                 >
-                  Cancelar
-                </button>
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold">{jogador.nome}</h3>
+                    <div className="flex gap-1">
+                      <button
+                        className="p-1 bg-red-500 text-xs rounded hover:bg-red-600"
+                        onClick={() => adicionarAoTime(jogador, 'A')}
+                      >
+                        {timeAName}
+                      </button>
+                      <button
+                        className="p-1 bg-blue-500 text-xs rounded hover:bg-blue-600"
+                        onClick={() => adicionarAoTime(jogador, 'B')}
+                      >
+                        {timeBName}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Barra de stamina */}
+                  <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
+                    <div
+                      className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
+                          jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}
+                      style={{ width: `${jogador.stamina}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                  </div>
+
+                  {/* Stats do jogador */}
+                  {jogador.pontos > 0 && (
+                    <div className="mt-2 text-xs text-gray-300">
+                      <p>Pontos: {jogador.pontos}</p>
+                      <p>Faltas: {jogador.faltas}</p>
+                    </div>
+                  )}
+                  
+                  {/* Botão para remover o jogador */}
+                  <button
+                    className="w-full mt-2 p-1 bg-red-800 text-xs rounded hover:bg-red-900"
+                    onClick={() => iniciarRemocaoJogador(jogador)}
+                  >
+                    Remover Jogador
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Área de Times */}
+          <div className="w-full px-4 py-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-zinc-800 border-b border-zinc-600">
+            {/* Time A */}
+            <div className="bg-zinc-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-red-500">{timeAName}</h2>
+                <div className="text-2xl font-bold">{pontosA} pts</div>
               </div>
+
+              {/* <div className="flex justify-between items-center mb-4">
+                <div>Faltas: {faltasA}</div>
+                <button
+                  className="px-3 py-1 bg-red-500 rounded hover:bg-red-600 text-sm"
+                  onClick={() => abrirModalFalta('A')}
+                >
+                  + Falta
+                </button>
+              </div> */}
+
+              <div className="space-y-3">
+                {jogadoresA.map((jogador) => (
+                  <div
+                    key={`timeA-${jogador.id}`}
+                    className="bg-zinc-800 p-3 rounded-lg flex justify-between items-center"
+                  >
+                    <div>
+                      <h3 className="font-bold">{jogador.nome}</h3>
+                      <div className="text-sm text-gray-400">
+                        {jogador.pontos} pts | {jogador.faltas} faltas
+                      </div>
+
+                      {/* Barra de stamina */}
+                      <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
+                        <div
+                          className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
+                              jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                          style={{ width: `${jogador.stamina}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <button
+                        className="p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                        onClick={() => voltarParaBanco(jogador)}
+                      >
+                        Banco
+                      </button>
+                      
+                      <button
+                        className="p-2 bg-red-700 rounded hover:bg-red-800"
+                        onClick={() => iniciarRemocaoJogador(jogador)}
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Time B */}
+            <div className="bg-zinc-700 rounded-lg p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-blue-500">{timeBName}</h2>
+                <div className="text-2xl font-bold">{pontosB} pts</div>
+              </div>
+
+              {/* <div className="flex justify-between items-center mb-4">
+                <div>Faltas: {faltasB}</div>
+                <button
+                  className="px-3 py-1 bg-blue-500 rounded hover:bg-blue-600 text-sm"
+                  onClick={() => abrirModalFalta('B')}
+                >
+                  + Falta
+                </button>
+              </div> */}
+
+              <div className="space-y-3">
+                {jogadoresB.map((jogador) => (
+                  <div
+                    key={`timeB-${jogador.id}`}
+                    className="bg-zinc-800 p-3 rounded-lg flex justify-between items-center"
+                  >
+                    <div>
+                      <h3 className="font-bold">{jogador.nome}</h3>
+                      <div className="text-sm text-gray-400">
+                        {jogador.pontos} pts | {jogador.faltas} faltas
+                      </div>
+
+                      {/* Barra de stamina */}
+                      <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
+                        <div
+                          className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
+                            jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                          style={{ width: `${jogador.stamina}%` }}
+                        />
+                      </div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <button
+                        className="p-2 bg-zinc-700 rounded hover:bg-zinc-600"
+                        onClick={() => voltarParaBanco(jogador)}
+                      >
+                        Banco
+                      </button>
+                      
+                      <button
+                        className="p-2 bg-red-700 rounded hover:bg-red-800"
+                        onClick={() => iniciarRemocaoJogador(jogador)}
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ... existing code ... */}
+        </div>
+      )}
+      {/* ... existing code ... */}
+      
+      {/* Modal de confirmação para remoção de jogador */}
+      {showRemoveConfirmation && jogadorParaRemover && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-zinc-800 p-6 rounded-lg w-80">
+            <h3 className="text-xl font-bold mb-4">Confirmar Remoção</h3>
+            <p className="mb-6">
+              Tem certeza que deseja remover o jogador <span className="font-bold">{jogadorParaRemover.nome}</span>?
+              Esta ação não poderá ser desfeita.
+            </p>
+            
+            <div className="flex justify-between">
+              <button
+                className="px-4 py-2 bg-zinc-600 rounded hover:bg-zinc-700"
+                onClick={() => {
+                  setShowRemoveConfirmation(false);
+                  setJogadorParaRemover(null);
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
+                onClick={removerJogador}
+              >
+                Remover
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </main>

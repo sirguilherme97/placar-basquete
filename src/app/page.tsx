@@ -2209,6 +2209,28 @@ export default function Home() {
         <div className="mt-8 p-4">
           <h2 className="text-2xl font-bold mb-6">{translations.estatisticasDetalhadas}</h2>
 
+          {/* Top 3 MVP */}
+          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
+            <h3 className="text-xl font-bold mb-4">{translations.top3MVP}</h3>
+            {getTop3MVP().length > 0 ? (
+              <div className="space-y-2">
+                {getTop3MVP().map((jogador, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <div>
+                      <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
+                      <p className="text-sm text-zinc-400">
+                        {jogador.time === 'A' ? timeAName : timeBName}
+                      </p>
+                    </div>
+                    <p className="text-xl font-bold">{jogador.pontos} pts</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-zinc-400">{translations.nenhumPontoMarcadoAinda}</p>
+            )}
+          </div>
+          
           {/* Aproveitamento */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
             <h3 className="text-xl font-bold mb-4">{translations.aproveitamento}</h3>
@@ -2263,27 +2285,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Top 3 MVP */}
-          <div className="bg-zinc-800 p-4 rounded-lg mb-6">
-            <h3 className="text-xl font-bold mb-4">{translations.top3MVP}</h3>
-            {getTop3MVP().length > 0 ? (
-              <div className="space-y-2">
-                {getTop3MVP().map((jogador, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <div>
-                      <p className="text-lg font-bold text-yellow-500">{jogador.nome}</p>
-                      <p className="text-sm text-zinc-400">
-                        {jogador.time === 'A' ? timeAName : timeBName}
-                      </p>
-                    </div>
-                    <p className="text-xl font-bold">{jogador.pontos} pts</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-zinc-400">{translations.nenhumPontoMarcadoAinda}</p>
-            )}
-          </div>
+
 
           {/* Destaques */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">

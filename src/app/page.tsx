@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
 import { GiWhistle, GiCardPlay } from "react-icons/gi";
+import { useLanguage } from './context/LanguageContext';
 
 interface Jogador {
   id: number; // ID único estático
@@ -114,6 +115,7 @@ interface EstadoJogo {
 let nextUniqueId = 1;
 
 export default function Home() {
+  const { translations } = useLanguage(); // Adicionando o hook useLanguage para obter as traduções
   const [seconds, setSeconds] = useState(300); // Estado para controlar o tempo em segundos
   const [isPaused, setIsPaused] = useState(true); // Estado para controlar a pausa do timer
   const [pontosA, setPontosA] = useState<any>(0); // Estado para armazenar os pontos do Time A
@@ -505,7 +507,7 @@ export default function Home() {
             ...j, // Preservar TODOS os atributos originais
             pontos: j.pontos || 0,
             faltas: j.faltas || 0,
-            stamina: j.stamina || 100, 
+            stamina: j.stamina || 100,
             eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
             tempoPosse: j.tempoPosse || 0,
             time: null as null
@@ -973,20 +975,20 @@ export default function Home() {
   // Função para lidar com o toque e segurar no jogador
   const handleTouchStart = (jogador: Jogador) => {
     if (jogador.time === null) return; // Ignorar jogadores sem time
-    
+
     // Verificar se é o mesmo jogador que já tem a posse
     if (posseBola && posseBola.jogadorId === jogador.id) {
       // Se o mesmo jogador já tem a posse, remover a posse
       removerPosseBola();
       return;
     }
-    
+
     // Se já havia um jogador com posse, registrar o tempo de posse do jogador anterior
     if (posseBola) {
       const agora = Date.now();
       if (ultimaAtualizacaoPosse) {
         const tempoDecorrido = (agora - ultimaAtualizacaoPosse) / 1000; // Converter para segundos
-        
+
         if (posseBola.time === 'A') {
           setJogadoresA(jogadoresA.map(j =>
             j.id === posseBola.jogadorId
@@ -1002,11 +1004,11 @@ export default function Home() {
         }
       }
     }
-    
+
     // Definir novo jogador com a posse
     setPosseBola({ time: jogador.time as 'A' | 'B', jogadorId: jogador.id });
     setUltimaAtualizacaoPosse(Date.now());
-    
+
     // Salvar estado para garantir persistência
     setTimeout(() => {
       salvarEstado();
@@ -1020,7 +1022,7 @@ export default function Home() {
       const agora = Date.now();
       if (ultimaAtualizacaoPosse) {
         const tempoDecorrido = (agora - ultimaAtualizacaoPosse) / 1000; // Converter para segundos
-        
+
         if (posseBola.time === 'A') {
           setJogadoresA(jogadoresA.map(j =>
             j.id === posseBola.jogadorId
@@ -1036,11 +1038,11 @@ export default function Home() {
         }
       }
     }
-    
+
     // Limpar a posse
     setPosseBola(null);
     setUltimaAtualizacaoPosse(null);
-    
+
     // Salvar estado
     setTimeout(() => {
       salvarEstado();
@@ -1094,7 +1096,7 @@ export default function Home() {
           setUltimaAtualizacaoPosse(agora);
         }
       }, 1000); // Atualizar a cada segundo para maior precisão
-      
+
       return () => clearInterval(intervalId);
     }
   }, [posseBola, isPaused, jogadoresA, jogadoresB, ultimaAtualizacaoPosse]);
@@ -1403,36 +1405,36 @@ export default function Home() {
           return prevJogadores.map(j => {
             // Verificar se este jogador tem a posse da bola
             // Só considerar a posse se o jogadorId for maior que 0 e o time for A
-            const temPosseBola = posseBola && 
-                                posseBola.jogadorId > 0 && 
-                                posseBola.jogadorId === j.id && 
-                                posseBola.time === 'A';
-            
+            const temPosseBola = posseBola &&
+              posseBola.jogadorId > 0 &&
+              posseBola.jogadorId === j.id &&
+              posseBola.time === 'A';
+
             // Calcular a nova stamina
             const taxaReducao = temPosseBola ? 2.0 : 0.5; // Dobrar a taxa para quem tem a bola
             const novaStamina = Math.max(10, (j.stamina || 100) - taxaReducao);
-            
+
             return {
               ...j,
               stamina: novaStamina
             };
           });
         });
-        
+
         // Reduzir stamina de jogadores que estão em times B
         setJogadoresB(prevJogadores => {
           return prevJogadores.map(j => {
             // Verificar se este jogador tem a posse da bola
             // Só considerar a posse se o jogadorId for maior que 0 e o time for B
-            const temPosseBola = posseBola && 
-                                posseBola.jogadorId > 0 && 
-                                posseBola.jogadorId === j.id && 
-                                posseBola.time === 'B';
-            
+            const temPosseBola = posseBola &&
+              posseBola.jogadorId > 0 &&
+              posseBola.jogadorId === j.id &&
+              posseBola.time === 'B';
+
             // Calcular a nova stamina
             const taxaReducao = temPosseBola ? 2.0 : 0.5; // Dobrar a taxa para quem tem a bola
             const novaStamina = Math.max(10, (j.stamina || 100) - taxaReducao);
-            
+
             return {
               ...j,
               stamina: novaStamina
@@ -1440,7 +1442,7 @@ export default function Home() {
           });
         });
       }, 2000); // Reduzir para 2 segundos para tornar o efeito mais perceptível
-      
+
       return () => clearInterval(intervalId);
     }
   }, [isPaused, isGameStarted, posseBola]);
@@ -1477,13 +1479,13 @@ export default function Home() {
     setJogadorParaRemover(jogador);
     setShowRemoveConfirmation(true);
   };
-  
+
   // Função para remover um jogador completamente do jogo
   const removerJogador = () => {
     if (!jogadorParaRemover) return;
-    
+
     const jogador = jogadorParaRemover;
-    
+
     if (jogador.time === 'A') {
       setJogadoresA(jogadoresA.filter(j => j.timeId !== jogador.timeId));
     } else if (jogador.time === 'B') {
@@ -1491,18 +1493,18 @@ export default function Home() {
     } else {
       setJogadoresBanco(jogadoresBanco.filter(j => j.timeId !== jogador.timeId));
     }
-    
+
     setHistoricoA(historicoA.filter(p => p.jogadorId !== jogador.id));
     setHistoricoB(historicoB.filter(p => p.jogadorId !== jogador.id));
     setFaltas(faltas.filter(f => f.jogadorId !== jogador.id));
-    
+
     if (posseBola && posseBola.jogadorId === jogador.id) {
       setPosseBola(null);
     }
-    
+
     setShowRemoveConfirmation(false);
     setJogadorParaRemover(null);
-    
+
     setTimeout(() => {
       salvarEstado();
     }, 300);
@@ -1525,12 +1527,12 @@ export default function Home() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-zinc-800 p-6 rounded-lg w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold">Games Salvos</h2>
+              <h2 className="text-2xl font-bold">{translations.gamesSalvos}</h2>
               <button
                 className="p-2 bg-red-500 rounded hover:bg-red-600"
                 onClick={() => setShowGamesModal(false)}
               >
-                Fechar
+                {translations.fechar}
               </button>
             </div>
             <div className="space-y-4">
@@ -1543,7 +1545,7 @@ export default function Home() {
                       </h3>
                       <p className="text-sm text-zinc-400">{game.data}</p>
                       <p className="mt-2">
-                        Placar: {game.pontosA} - {game.pontosB}
+                        {translations.placar}: {game.pontosA} - {game.pontosB}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -1551,34 +1553,34 @@ export default function Home() {
                         className="p-2 bg-blue-500 rounded hover:bg-blue-600"
                         onClick={() => carregarGame(game)}
                       >
-                        Carregar
+                        {translations.carregar}
                       </button>
                       <button
                         className="p-2 bg-red-500 rounded hover:bg-red-600"
                         onClick={() => deletarGame(game.id)}
                       >
-                        Deletar
+                        {translations.deletar}
                       </button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-4 flex gap-2 items-center justify-center">
               <button
-                className="w-full p-2 bg-green-500 rounded hover:bg-green-600"
+                className="w-full p-2 bg-green-500 rounded hover:bg-green-600 flex items-center justify-center text-center h-20"
                 onClick={salvarGame}
               >
-                Salvar Game Atual
+                {translations.salvarGameAtual}
               </button>
               <button
-                className="w-full p-2 bg-blue-500 rounded hover:bg-blue-600"
+                className="w-full p-2 bg-blue-500 rounded hover:bg-blue-600 flex items-center justify-center text-center h-20"
                 onClick={exportarDados}
               >
-                Exportar Dados
+                {translations.exportarDados}
               </button>
-              <label className="w-full p-2 bg-yellow-500 rounded hover:bg-yellow-600 text-center cursor-pointer">
-                Importar Dados
+              <label className="w-full p-2 bg-yellow-500 rounded hover:bg-yellow-600 text-center cursor-pointer flex items-center justify-center h-20">
+                {translations.importarDados}
                 <input
                   type="file"
                   accept=".json"
@@ -1597,19 +1599,19 @@ export default function Home() {
           className={`px-4 py-2 rounded ${activeTab === 'placar' ? 'bg-blue-500' : 'bg-zinc-700'}`}
           onClick={() => setActiveTab('placar')}
         >
-          Placar
+          {translations.placar}
         </button>
         <button
           className={`px-4 py-2 rounded ${activeTab === 'informacoes' ? 'bg-blue-500' : 'bg-zinc-700'}`}
           onClick={() => setActiveTab('informacoes')}
         >
-          Informações
+          {translations.informacoes}
         </button>
         <button
           className={`px-4 py-2 rounded ${activeTab === 'estatisticas' ? 'bg-blue-500' : 'bg-zinc-700'}`}
           onClick={() => setActiveTab('estatisticas')}
         >
-          Estatísticas
+          {translations.estatisticas}
         </button>
       </div>
 
@@ -1694,7 +1696,8 @@ export default function Home() {
               <div className='flex mb-10 flex-col pt-10 items-center justify-center'>
                 <AiFillPlayCircle size={120} onClick={handleTimerToggle} />
                 <div className=''>
-                  <p className='mt-10 '>Tempo de Jogo - SEGUNDOS</p>
+                  <p className='mt-10 '>{translations.tempoJogo} - {translations.segundos}</p>
+                  {/* <p className='mt-10 '>Tempo de Jogo - SEGUNDOS</p> */}
                   <input
                     placeholder='Tempo de Jogo'
                     type="number"
@@ -1702,7 +1705,7 @@ export default function Home() {
                     onChange={handleTimer}
                     className="rounded-md placeholder:text-zinc-500 placeholder:text-lg pl-5 mt-2 w-full h-10 bg-zinc-800 font-bold text-2xl flex items-center justify-center"
                   />
-                  <p className='mt-2'>Pontos do {`${timeAName}`}</p>
+                  <p className='mt-2'>{translations.pontos} {`${timeAName}`}</p>
                   <input
                     placeholder='Pontos do Time A'
                     type="number"
@@ -1710,7 +1713,7 @@ export default function Home() {
                     onChange={handlePontosA}
                     className="rounded-md placeholder:text-zinc-500 placeholder:text-lg pl-5 mt-2 w-full h-10 bg-zinc-800 font-bold text-2xl flex items-center justify-center"
                   />
-                  <p className='mt-2'>Pontos do {`${timeBName}`}</p>
+                  <p className='mt-2'>{translations.pontos} {`${timeBName}`}</p>
                   <input
                     placeholder='Pontos do Time B'
                     type="number"
@@ -1730,11 +1733,11 @@ export default function Home() {
                     <GiWhistle onClick={StartSound} size={80} className="mt-4" />
                     {/* Botão para remover posse da bola */}
                     {posseBola && (
-                      <button 
+                      <button
                         className="mt-4 p-3 bg-red-600 text-white rounded-full hover:bg-red-700"
                         onClick={removerPosseBola}
                       >
-                        Remover Posse da Bola
+                        {translations.removerPosseBola}
                       </button>
                     )}
                   </div>
@@ -1746,15 +1749,14 @@ export default function Home() {
                       {jogadoresA.map((jogador) => {
                         // Verificar se este jogador tem a posse da bola
                         const temPosseBola = posseBola && posseBola.jogadorId > 0 && posseBola.jogadorId === jogador.id && posseBola.time === 'A';
-                        
+
                         return (
                           <div
                             key={`jogo-timeA-${jogador.id}`}
-                            className={`p-3 rounded cursor-pointer transition-all w-44 ${
-                              temPosseBola
+                            className={`p-3 rounded cursor-pointer transition-all w-44 ${temPosseBola
                                 ? 'bg-white text-zinc-900 border-2 border-zinc-800 shadow-lg'
                                 : 'bg-zinc-800'
-                            }`}
+                              }`}
                             onClick={() => handleTouchStart(jogador)}
                           >
                             <div className="flex justify-between items-start">
@@ -1762,18 +1764,18 @@ export default function Home() {
                               <span className="text-xs px-1 py-0.5 rounded bg-red-600 text-white">{jogador.faltas}</span>
                             </div>
                             <p className="text-sm font-bold mt-1">{jogador.pontos} pts</p>
-                            
+
                             {/* Barra de stamina */}
                             <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
-                              <div 
+                              <div
                                 className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
                                   jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
+                                  }`}
                                 style={{ width: `${jogador.stamina || 100}%` }}
                               />
                             </div>
                             <div className="text-xs text-gray-400 mt-1">
-                              Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                              {translations.estamina}: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
                             </div>
                           </div>
                         );
@@ -1785,15 +1787,14 @@ export default function Home() {
                       {jogadoresB.map((jogador) => {
                         // Verificar se este jogador tem a posse da bola
                         const temPosseBola = posseBola && posseBola.jogadorId > 0 && posseBola.jogadorId === jogador.id && posseBola.time === 'B';
-                        
+
                         return (
                           <div
                             key={`jogo-timeB-${jogador.id}`}
-                            className={`p-3 rounded cursor-pointer transition-all w-44 ${
-                              temPosseBola
+                            className={`p-3 rounded cursor-pointer transition-all w-44 ${temPosseBola
                                 ? 'bg-white text-zinc-900 border-2 border-zinc-800 shadow-lg'
                                 : 'bg-zinc-800'
-                            }`}
+                              }`}
                             onClick={() => handleTouchStart(jogador)}
                           >
                             <div className="flex justify-between items-start">
@@ -1801,20 +1802,20 @@ export default function Home() {
                               <span className="text-xs px-1 py-0.5 rounded bg-red-600 text-white">{jogador.faltas}</span>
                             </div>
                             <p className="text-sm font-bold mt-1">{jogador.pontos} pts</p>
-                            
+
                             {/* Indicador de posse de bola */}
-                            
+
                             {/* Barra de stamina */}
                             <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
-                              <div 
+                              <div
                                 className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
                                   jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
+                                  }`}
                                 style={{ width: `${jogador.stamina || 100}%` }}
                               />
                             </div>
                             <div className="text-xs text-gray-400 mt-1">
-                              Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                              {translations.estamina}: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
                             </div>
                           </div>
                         );
@@ -1887,19 +1888,19 @@ export default function Home() {
         <div className="mt-8 p-4">
           <div className="flex justify-between items-center mb-4">
             <div className="flex flex-col items-center gap-4">
-              <h2 className="text-2xl font-bold">Informações do Jogo</h2>
+              <h2 className="text-2xl font-bold">{translations.informacoes}</h2>
               <div className="flex gap-2">
                 <button
                   className={`px-3 py-1 rounded ${historicoView === 'times' ? 'bg-blue-500' : 'bg-zinc-700'}`}
                   onClick={() => setHistoricoView('times')}
                 >
-                  Por Time
+                  {translations.porTime}
                 </button>
                 <button
                   className={`px-3 py-1 rounded ${historicoView === 'cronologico' ? 'bg-blue-500' : 'bg-zinc-700'}`}
                   onClick={() => setHistoricoView('cronologico')}
                 >
-                  Cronológico
+                  {translations.cronologico}
                 </button>
               </div>
             </div>
@@ -1907,12 +1908,12 @@ export default function Home() {
               className="px-4 py-2 bg-red-500 rounded hover:bg-red-600"
               onClick={resetarTudo}
             >
-              Resetar Tudo
+              {translations.resetarTudo}
             </button>
           </div>
 
           {historicoView === 'times' ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 ">
               <div>
                 <h3 className="text-xl font-bold mb-2">{timeAName}</h3>
                 <div className="space-y-4">
@@ -1933,31 +1934,31 @@ export default function Home() {
                             <div className="mt-2 space-y-1">
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">3pts:</span>
-                                <span className="text-sm">{cestas3pts} cestas ({cestas3pts * 3} pts)</span>
+                                <span className="text-sm">{cestas3pts} {translations.cestas} ({cestas3pts * 3} {translations.pontos})</span>
                               </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">2pts:</span>
-                                <span className="text-sm">{cestas2pts} cestas ({cestas2pts * 2} pts)</span>
+                                <span className="text-sm">{cestas2pts} {translations.cestas} ({cestas2pts * 2} {translations.pontos})</span>
                               </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">1pt:</span>
-                                <span className="text-sm">{lancesLivres} lances ({lancesLivres} pts)</span>
+                                <span className="text-sm">{lancesLivres} {translations.lances} ({lancesLivres} {translations.pontos})</span>
                               </div>
                             </div>
                             {stats.totalFaltas > 0 && (
                               <div className="flex items-center gap-1 mt-2">
                                 <GiCardPlay className="text-red-500" size={20} />
-                                <span className="text-sm text-red-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
+                                <span className="text-sm text-red-400">{stats.totalFaltas} {translations.falta}{stats.totalFaltas > 1 ? 's' : ''}</span>
                               </div>
                             )}
                             <div className="mt-2">
-                              <span className="text-sm text-zinc-400">Posse: {formatarTempo(jogador.tempoPosse || 0)}</span>
+                              <span className="text-sm text-zinc-400">{translations.posse}: {formatarTempo(jogador.tempoPosse || 0)}</span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
+                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} {translations.pts}</p>
                             <p className="text-sm text-zinc-400">
-                              Eficiência: {calcularEficiencia(jogador).toFixed(1)}
+                              {translations.eficiencia}: {calcularEficiencia(jogador).toFixed(1)}
                             </p>
                           </div>
                         </div>
@@ -1986,31 +1987,31 @@ export default function Home() {
                             <div className="mt-2 space-y-1">
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">3pts:</span>
-                                <span className="text-sm">{cestas3pts} cestas ({cestas3pts * 3} pts)</span>
+                                <span className="text-sm">{cestas3pts} {translations.cestas} ({cestas3pts * 3} {translations.pontos})</span>
                               </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">2pts:</span>
-                                <span className="text-sm">{cestas2pts} cestas ({cestas2pts * 2} pts)</span>
+                                <span className="text-sm">{cestas2pts} {translations.cestas} ({cestas2pts * 2} {translations.pontos})</span>
                               </div>
                               <div className="flex flex-col items-start gap-2">
                                 <span className="text-yellow-500">1pt:</span>
-                                <span className="text-sm">{lancesLivres} lances ({lancesLivres} pts)</span>
+                                <span className="text-sm">{lancesLivres} {translations.lances} ({lancesLivres} {translations.pontos})</span>
                               </div>
                             </div>
                             {stats.totalFaltas > 0 && (
                               <div className="flex items-center gap-1 mt-2">
                                 <GiCardPlay className="text-red-500" size={20} />
-                                <span className="text-sm text-red-400">{stats.totalFaltas} falta{stats.totalFaltas > 1 ? 's' : ''}</span>
+                                <span className="text-sm text-red-400">{stats.totalFaltas} {translations.falta}{stats.totalFaltas > 1 ? 's' : ''}</span>
                               </div>
                             )}
                             <div className="mt-2">
-                              <span className="text-sm text-zinc-400">Posse: {formatarTempo(jogador.tempoPosse || 0)}</span>
+                              <span className="text-sm text-zinc-400">{translations.posse}: {formatarTempo(jogador.tempoPosse || 0)}</span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} pts</p>
+                            <p className="text-2xl font-bold text-yellow-500">{stats.totalPontos} {translations.pts}</p>
                             <p className="text-sm text-zinc-400">
-                              Eficiência: {calcularEficiencia(jogador).toFixed(1)}
+                              {translations.eficiencia}: {calcularEficiencia(jogador).toFixed(1)}
                             </p>
                           </div>
                         </div>
@@ -2036,7 +2037,7 @@ export default function Home() {
                       ) : (
                         <>
                           <span className="text-red-500 font-bold px-2 py-1 rounded bg-red-500/20">
-                            Falta
+                            {translations.falta}
                           </span>
                           <span className="font-medium">{item.jogador}</span>
                         </>
@@ -2063,31 +2064,31 @@ export default function Home() {
                     className="p-2 bg-red-500 rounded hover:bg-red-600"
                     onClick={() => setShowPlayerDetails(false)}
                   >
-                    Fechar
+                    {translations.fechar}
                   </button>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="bg-zinc-700 p-4 rounded-lg">
-                    <h3 className="text-xl font-bold mb-2">Estatísticas Gerais</h3>
+                    <h3 className="text-xl font-bold mb-2">{translations.estatisticasGerais}</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Time:</span>
+                        <span>{translations.time}:</span>
                         <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Total de Pontos:</span>
+                        <span>{translations.totalPontos}:</span>
                         <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Total de Faltas:</span>
+                        <span>{translations.totalFaltas}:</span>
                         <span className="font-bold text-red-500">{getPlayerStats(selectedPlayer).totalFaltas}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Tempo de Posse:</span>
+                        <span>{translations.tempoPosse}:</span>
                         <span className="font-bold">{formatarTempo(selectedPlayer.tempoPosse || 0)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Pontos por Minuto:</span>
+                        <span>{translations.pontosPorMinuto}:</span>
                         <span className="font-bold">
                           {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
                         </span>
@@ -2095,36 +2096,36 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="bg-zinc-700 p-4 rounded-lg">
-                    <h3 className="text-xl font-bold mb-2">Cálculo da Eficiência</h3>
+                    <h3 className="text-xl font-bold mb-2">{translations.calculoEficiencia}</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Pontos por Minuto:</span>
+                        <span>{translations.pontosPorMinuto}:</span>
                         <span className="font-bold text-yellow-500">
                           {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Penalidade por Faltas:</span>
+                        <span>{translations.penalidadeFaltas}:</span>
                         <span className="font-bold text-red-500">
-                          -{(selectedPlayer.faltas || 0) * 2} pontos
+                          -{(selectedPlayer.faltas || 0) * 2} {translations.pontos}
                         </span>
                       </div>
                       <div className="flex justify-between">
-                        <span>Eficiência Final:</span>
+                        <span>{translations.eficienciaFinal}:</span>
                         <span className="font-bold">
-                          {calcularEficiencia(selectedPlayer).toFixed(1)} pts/min
+                          {calcularEficiencia(selectedPlayer).toFixed(1)} {translations.ptsMin}
                         </span>
                       </div>
                       <div className="mt-4 text-sm text-zinc-400">
-                        <p>Fórmula: (Pontos / Tempo de Posse em minutos) - (Faltas * 2)</p>
-                        <p>Quanto mais pontos em menos tempo, maior a eficiência.</p>
-                        <p>Cada falta reduz 2 pontos da eficiência.</p>
+                        <p>{translations.formula}</p>
+                        <p>{translations.maiorEficiencia}</p>
+                        <p>{translations.penalidade}</p>
                       </div>
                     </div>
                   </div>
                 </div>
                 <div className="mt-4">
-                  <h3 className="text-xl font-bold mb-2">Histórico de Pontos</h3>
+                  <h3 className="text-xl font-bold mb-2">{translations.historicoPontos}</h3>
                   <div className="bg-zinc-700 p-4 rounded-lg">
                     <div className="space-y-2">
                       {getPlayerStats(selectedPlayer).pontos.map((ponto, index) => (
@@ -2137,12 +2138,12 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <h3 className="text-xl font-bold mb-2">Histórico de Faltas</h3>
+                  <h3 className="text-xl font-bold mb-2">{translations.historicoFaltas}</h3>
                   <div className="bg-zinc-700 p-4 rounded-lg">
                     <div className="space-y-2">
                       {getPlayerStats(selectedPlayer).faltas.map((falta, index) => (
                         <div key={index} className="flex justify-between items-center">
-                          <span className="text-red-500 font-bold">Falta</span>
+                          <span className="text-red-500 font-bold">{translations.falta}</span>
                           <span className="text-zinc-400">{falta.tempo}</span>
                         </div>
                       ))}
@@ -2155,20 +2156,20 @@ export default function Home() {
         </div>
       ) : (
         <div className="mt-8 p-4">
-          <h2 className="text-2xl font-bold mb-6">Estatísticas Detalhadas</h2>
+          <h2 className="text-2xl font-bold mb-6">{translations.estatisticasDetalhadas}</h2>
 
           {/* Aproveitamento */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
-            <h3 className="text-xl font-bold mb-4">Aproveitamento</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.aproveitamento}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Média de Pontos por Jogador</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.mediaPontosJogador}</h4>
                 <p className="text-2xl font-bold text-yellow-500">
                   {aproveitamento?.mediaPontosJogador || ((+pontosA + +pontosB) / (jogadoresA.length + jogadoresB.length)).toFixed(1)}
                 </p>
               </div>
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Média de Pontos por Time</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.mediaPontosTime}</h4>
                 <div className="flex justify-between">
                   <div>
                     <p className="text-sm">{timeAName}</p>
@@ -2189,10 +2190,10 @@ export default function Home() {
 
           {/* Faltas e Pausas */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
-            <h3 className="text-xl font-bold mb-4">Faltas e Pausas</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.faltasEPausas}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Faltas</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.faltas}</h4>
                 <div className="flex justify-between">
                   <div>
                     <p className="text-sm">{timeAName}</p>
@@ -2205,7 +2206,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Pausas</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.pausas}</h4>
                 <p className="text-2xl font-bold text-yellow-500">{pausas}</p>
               </div>
             </div>
@@ -2213,7 +2214,7 @@ export default function Home() {
 
           {/* Top 3 MVP */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
-            <h3 className="text-xl font-bold mb-4">Top 3 MVP</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.top3MVP}</h3>
             {getTop3MVP().length > 0 ? (
               <div className="space-y-2">
                 {getTop3MVP().map((jogador, index) => (
@@ -2229,16 +2230,16 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-zinc-400">Nenhum ponto marcado ainda</p>
+              <p className="text-center text-zinc-400">{translations.nenhumPontoMarcadoAinda}</p>
             )}
           </div>
 
           {/* Destaques */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
-            <h3 className="text-xl font-bold mb-4">Destaques</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.destaques}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Jogador Mais Eficiente</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.jogadorMaisEficiente}</h4>
                 {(() => {
                   const jogadorMaisEficiente = getGameStats().jogadorMaisEficiente;
                   if (!jogadorMaisEficiente) return <></>;
@@ -2248,11 +2249,11 @@ export default function Home() {
                       <p className="text-lg font-bold">{jogadorMaisEficiente.nome}</p>
                       <p className="text-sm text-zinc-400">{eficiencia.toFixed(1)} pts/min</p>
                       <p className="text-sm text-zinc-400">
-                        {jogadorMaisEficiente.pontos} pontos em {formatarTempo(jogadorMaisEficiente.tempoPosse || 0)}
+                        {jogadorMaisEficiente.pontos} {translations.pontos} {translations.em} {formatarTempo(jogadorMaisEficiente.tempoPosse || 0)}
                       </p>
                       {jogadorMaisEficiente.faltas > 0 && (
                         <p className="text-sm text-red-400">
-                          {jogadorMaisEficiente.faltas} falta{jogadorMaisEficiente.faltas !== 1 ? 's' : ''}
+                          {jogadorMaisEficiente.faltas} {translations.falta}{jogadorMaisEficiente.faltas !== 1 ? 's' : ''}
                         </p>
                       )}
                     </div>
@@ -2261,7 +2262,7 @@ export default function Home() {
               </div>
 
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Jogador com Menos Faltas</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.jogadorComMenosFaltas}</h4>
                 {(() => {
                   const todosJogadores = [...jogadoresA, ...jogadoresB];
                   const jogadorMenosFaltas = todosJogadores.reduce((menosFaltas, jogador) => {
@@ -2272,14 +2273,14 @@ export default function Home() {
                   return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMenosFaltas.nome}</p>
-                      <p className="text-sm text-zinc-400">{jogadorMenosFaltas.faltas} falta{jogadorMenosFaltas.faltas !== 1 ? 's' : ''}</p>
+                      <p className="text-sm text-zinc-400">{jogadorMenosFaltas.faltas} {translations.falta}{jogadorMenosFaltas.faltas !== 1 ? 's' : ''}</p>
                     </div>
                   );
                 })()}
               </div>
 
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Jogador com Mais Posse de Bola</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.jogadorComMaisPosseBola}</h4>
                 {(() => {
                   const todosJogadores = [...jogadoresA, ...jogadoresB];
                   const jogadorMaisPosse = todosJogadores.reduce((maisPosse, jogador) => {
@@ -2297,7 +2298,7 @@ export default function Home() {
               </div>
 
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Maior Cestinha de 3 Pontos</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.maiorCestinha3Pontos}</h4>
                 {(() => {
                   const todosJogadores = [...jogadoresA, ...jogadoresB];
                   const jogadorMais3pts = todosJogadores.reduce((mais3pts, jogador) => {
@@ -2311,14 +2312,14 @@ export default function Home() {
                   return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMais3pts.nome}</p>
-                      <p className="text-sm text-zinc-400">{jogadorMais3pts.cestas3pts} cestas de 3 pontos</p>
+                      <p className="text-sm text-zinc-400"><span className="text-yellow-500 font-bold text-base">{jogadorMais3pts.cestas3pts}</span> {translations.cestas3pontos}</p>
                     </div>
                   );
                 })()}
               </div>
 
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Maior Cestinha</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.maiorCestinha}</h4>
                 {(() => {
                   const todosJogadores = [...jogadoresA, ...jogadoresB];
                   const jogadorMaisPontos = todosJogadores.reduce((maisPontos, jogador) => {
@@ -2329,7 +2330,7 @@ export default function Home() {
                   return (
                     <div>
                       <p className="text-lg font-bold">{jogadorMaisPontos.nome}</p>
-                      <p className="text-sm text-zinc-400">{jogadorMaisPontos.pontos} pontos</p>
+                      <p className="text-sm text-zinc-400">{jogadorMaisPontos.pontos} {translations.pontos}</p>
                     </div>
                   );
                 })()}
@@ -2339,10 +2340,10 @@ export default function Home() {
 
           {/* Outros */}
           <div className="bg-zinc-800 p-4 rounded-lg">
-            <h3 className="text-xl font-bold mb-4">Outros</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.outros}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
-                <h4 className="text-lg font-bold mb-2">Tempo de Jogo</h4>
+                <h4 className="text-lg font-bold mb-2">{translations.tempoDeJogo}</h4>
                 <p className="text-2xl font-bold text-yellow-500">
                   {formatarTempo(calcularTempoJogo())}
                 </p>
@@ -2352,7 +2353,7 @@ export default function Home() {
 
           {/* Posse de Bola */}
           <div className="bg-zinc-800 p-4 rounded-lg mb-6">
-            <h3 className="text-xl font-bold mb-4">Posse de Bola</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.posseDeBola}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-zinc-700 p-4 rounded-lg">
                 <h4 className="text-lg font-bold mb-2">{timeAName}</h4>
@@ -2389,7 +2390,7 @@ export default function Home() {
       {showFaltaModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-zinc-800 p-4 rounded-lg w-80">
-            <h3 className="text-xl font-bold mb-4">Registrar Falta</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.registrarFalta}</h3>
             <div className="space-y-2">
               <div className="flex gap-2">
                 <button
@@ -2451,12 +2452,12 @@ export default function Home() {
       {showAddBenchPlayerPopover && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-zinc-800 p-4 rounded-lg w-80">
-            <h3 className="text-xl font-bold mb-4">Adicionar Jogador ao Banco</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.adicionarJogadorBanco}</h3>
             <input
               type="text"
               value={newPlayerName}
               onChange={(e) => setNewPlayerName(e.target.value)}
-              placeholder="Nome do jogador"
+              placeholder={translations.nomeDoJogador}
               className="w-full p-2 bg-zinc-700 rounded mb-4"
               onKeyPress={(e) => e.key === 'Enter' && adicionarJogadorAoBanco()}
             />
@@ -2465,13 +2466,13 @@ export default function Home() {
                 className="flex-1 p-2 bg-green-500 rounded hover:bg-green-600"
                 onClick={adicionarJogadorAoBanco}
               >
-                Adicionar
+                {translations.adicionar}
               </button>
               <button
                 className="flex-1 p-2 bg-red-500 rounded hover:bg-red-600"
                 onClick={() => setShowAddBenchPlayerPopover(false)}
               >
-                Cancelar
+                {translations.cancelar}
               </button>
             </div>
           </div>
@@ -2483,12 +2484,12 @@ export default function Home() {
           {/* Área de jogadores disponíveis (banco) */}
           <div className="w-full px-4 py-4 bg-zinc-800 border-b border-zinc-600">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Banco de Jogadores</h2>
+              <h2 className="text-xl font-bold">{translations.banco}</h2>
               <button
                 className="px-4 py-2 bg-green-500 rounded hover:bg-green-600"
                 onClick={() => setShowAddBenchPlayerPopover(true)}
               >
-                Adicionar Jogador
+                {translations.adicionarJogador}
               </button>
             </div>
 
@@ -2515,26 +2516,26 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
-                  
+
                   {/* Eficiência e histórico do jogador */}
                   {(jogador.eficiencia !== undefined && jogador.eficiencia > 0) && (
                     <div className="text-sm text-yellow-400 mb-2">
-                      Eficiência: {jogador.eficiencia.toFixed(1)}
+                      {translations.eficiencia}: {jogador.eficiencia.toFixed(1)}
                     </div>
                   )}
-                  
+
                   {/* Histórico de times do jogador */}
                   {jogador.historicoTimes && jogador.historicoTimes.length > 0 && (
                     <div className="text-xs text-gray-300 mb-2">
-                      <p>Histórico:</p>
+                      <p>{translations.historico}:</p>
                       {jogador.historicoTimes.map((registro, idx) => (
                         <div key={`hist-${jogador.id}-${idx}`} className="ml-2">
-                          {registro.time === 'A' ? timeAName : timeBName}: {registro.pontos} pts, {registro.faltas} faltas
+                          {registro.time === 'A' ? timeAName : timeBName}: {registro.pontos} {translations.pontos}, {registro.faltas} {translations.faltas}
                         </div>
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Barra de stamina */}
                   <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
                     <div
@@ -2544,13 +2545,13 @@ export default function Home() {
                   </div>
                   <div className="flex justify-between items-center mt-1">
                     <div className="text-xs text-gray-400">
-                      Estamina: {Math.floor(jogador.stamina)}%
+                      {translations.estamina}: {Math.floor(jogador.stamina)}%
                     </div>
                     <button
                       className="p-1 bg-red-800 text-xs rounded hover:bg-red-700"
                       onClick={() => iniciarRemocaoJogador(jogador)}
                     >
-                      Remover
+                      {translations.remover}
                     </button>
                   </div>
                 </div>
@@ -2586,13 +2587,13 @@ export default function Home() {
                     <div>
                       <h3 className="font-bold">{jogador.nome}</h3>
                       <div className="text-sm text-gray-400">
-                        {jogador.pontos} pts | {jogador.faltas} faltas
+                        {jogador.pontos} {translations.pontos} | {jogador.faltas} {translations.faltas}
                       </div>
-                      
+
                       {/* Histórico do jogador se existir */}
                       {jogador.historicoTimes && jogador.historicoTimes.length > 0 && (
                         <div className="text-xs text-gray-400 mt-1">
-                          Histórico: {jogador.historicoTimes.reduce((total, h) => total + h.pontos, 0)} pts totais
+                          {translations.historico}: {jogador.historicoTimes.reduce((total, h) => total + h.pontos, 0)} {translations.pontos} {translations.totais}
                         </div>
                       )}
 
@@ -2600,13 +2601,13 @@ export default function Home() {
                       <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
                         <div
                           className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
-                              jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
+                            jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
                             }`}
                           style={{ width: `${jogador.stamina}%` }}
                         />
                       </div>
                       <div className="text-xs text-gray-400 mt-1">
-                        Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                        {translations.estamina}: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
                       </div>
                     </div>
 
@@ -2615,14 +2616,14 @@ export default function Home() {
                         className="p-2 bg-zinc-700 rounded hover:bg-zinc-600"
                         onClick={() => voltarParaBanco(jogador)}
                       >
-                        Banco
+                        {translations.banco}
                       </button>
-                      
+
                       <button
                         className="p-2 bg-red-700 rounded hover:bg-red-800"
                         onClick={() => iniciarRemocaoJogador(jogador)}
                       >
-                        Remover
+                        {translations.remover}
                       </button>
                     </div>
                   </div>
@@ -2656,13 +2657,13 @@ export default function Home() {
                     <div>
                       <h3 className="font-bold">{jogador.nome}</h3>
                       <div className="text-sm text-gray-400">
-                        {jogador.pontos} pts | {jogador.faltas} faltas
+                        {jogador.pontos} {translations.pontos} | {jogador.faltas} {translations.faltas}
                       </div>
-                      
+
                       {/* Histórico do jogador se existir */}
                       {jogador.historicoTimes && jogador.historicoTimes.length > 0 && (
                         <div className="text-xs text-gray-400 mt-1">
-                          Histórico: {jogador.historicoTimes.reduce((total, h) => total + h.pontos, 0)} pts totais
+                          {translations.historico}: {jogador.historicoTimes.reduce((total, h) => total + h.pontos, 0)} {translations.pontos} {translations.totais}
                         </div>
                       )}
 
@@ -2676,7 +2677,7 @@ export default function Home() {
                         />
                       </div>
                       <div className="text-xs text-gray-400 mt-1">
-                        Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
+                        {translations.estamina}: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
                       </div>
                     </div>
 
@@ -2685,14 +2686,14 @@ export default function Home() {
                         className="p-2 bg-zinc-700 rounded hover:bg-zinc-600"
                         onClick={() => voltarParaBanco(jogador)}
                       >
-                        Banco
+                        {translations.banco}
                       </button>
-                      
+
                       <button
                         className="p-2 bg-red-700 rounded hover:bg-red-800"
                         onClick={() => iniciarRemocaoJogador(jogador)}
                       >
-                        Remover
+                        {translations.remover}
                       </button>
                     </div>
                   </div>
@@ -2705,17 +2706,17 @@ export default function Home() {
         </div>
       )}
       {/* ... existing code ... */}
-      
+
       {/* Modal de confirmação para remoção de jogador */}
       {showRemoveConfirmation && jogadorParaRemover && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-zinc-800 p-6 rounded-lg w-80">
-            <h3 className="text-xl font-bold mb-4">Confirmar Remoção</h3>
+            <h3 className="text-xl font-bold mb-4">{translations.confirmarRemocao}</h3>
             <p className="mb-6">
-              Tem certeza que deseja remover o jogador <span className="font-bold">{jogadorParaRemover.nome}</span>?
-              Esta ação não poderá ser desfeita.
+              {translations.textRemoval} <span className="font-bold">{jogadorParaRemover.nome}</span>?
+              {translations.textRemovalConfirmation}
             </p>
-            
+
             <div className="flex justify-between">
               <button
                 className="px-4 py-2 bg-zinc-600 rounded hover:bg-zinc-700"
@@ -2724,13 +2725,13 @@ export default function Home() {
                   setJogadorParaRemover(null);
                 }}
               >
-                Cancelar
+                {translations.cancelar}
               </button>
               <button
                 className="px-4 py-2 bg-red-600 rounded hover:bg-red-700"
                 onClick={removerJogador}
               >
-                Remover
+                {translations.remover}
               </button>
             </div>
           </div>

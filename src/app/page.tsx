@@ -375,27 +375,30 @@ export default function Home() {
   // Função para salvar estado no localStorage
   const salvarEstado = () => {
     try {
-      // Garantir que todos os jogadores tenham campos com valores padrão, se ausentes
+      // Garantir que todos os jogadores tenham campos com valores padrão, se ausentes, mas preservando todos os dados existentes
       const jogadoresAEmSegundos = jogadoresA.map(j => ({
-        ...j,
-        tempoPosse: Math.floor(j.tempoPosse || 0),
-        stamina: j.stamina || 100,
-        pontos: j.pontos || 0,
-        faltas: j.faltas || 0
-      }));
-      const jogadoresBEmSegundos = jogadoresB.map(j => ({
-        ...j,
-        tempoPosse: Math.floor(j.tempoPosse || 0),
-        stamina: j.stamina || 100,
-        pontos: j.pontos || 0,
-        faltas: j.faltas || 0
-      }));
-      const jogadoresBancoEmSegundos = jogadoresBanco.map(j => ({
-        ...j,
+        ...j, // Primeiro preservamos TODOS os atributos originais
         tempoPosse: Math.floor(j.tempoPosse || 0),
         stamina: j.stamina || 100,
         pontos: j.pontos || 0,
         faltas: j.faltas || 0,
+        eficiencia: j.eficiencia || 0 // Garantir que eficiência está presente
+      }));
+      const jogadoresBEmSegundos = jogadoresB.map(j => ({
+        ...j, // Primeiro preservamos TODOS os atributos originais
+        tempoPosse: Math.floor(j.tempoPosse || 0),
+        stamina: j.stamina || 100,
+        pontos: j.pontos || 0,
+        faltas: j.faltas || 0,
+        eficiencia: j.eficiencia || 0 // Garantir que eficiência está presente
+      }));
+      const jogadoresBancoEmSegundos = jogadoresBanco.map(j => ({
+        ...j, // Primeiro preservamos TODOS os atributos originais
+        tempoPosse: Math.floor(j.tempoPosse || 0),
+        stamina: j.stamina || 100,
+        pontos: j.pontos || 0,
+        faltas: j.faltas || 0,
+        eficiencia: j.eficiencia || 0, // Garantir que eficiência está presente
         time: null as null // Garantir que está marcado como banco
       }));
       const estado: EstadoJogo = {
@@ -479,22 +482,28 @@ export default function Home() {
         setGames(parsedGames.map((game: Game) => ({
           ...game,
           jogadoresA: game.jogadoresA.map((j: Jogador) => ({
-            ...j,
-            pontos: j.pontos || 0,
-            faltas: j.faltas || 0,
-            stamina: j.stamina || 100
-          })),
-          jogadoresB: game.jogadoresB.map((j: Jogador) => ({
-            ...j,
-            pontos: j.pontos || 0,
-            faltas: j.faltas || 0,
-            stamina: j.stamina || 100
-          })),
-          jogadoresBanco: game.jogadoresBanco ? game.jogadoresBanco.map((j: Jogador) => ({
-            ...j,
+            ...j, // Preservar TODOS os atributos originais
             pontos: j.pontos || 0,
             faltas: j.faltas || 0,
             stamina: j.stamina || 100,
+            eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+            tempoPosse: j.tempoPosse || 0
+          })),
+          jogadoresB: game.jogadoresB.map((j: Jogador) => ({
+            ...j, // Preservar TODOS os atributos originais
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100,
+            eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+            tempoPosse: j.tempoPosse || 0
+          })),
+          jogadoresBanco: game.jogadoresBanco ? game.jogadoresBanco.map((j: Jogador) => ({
+            ...j, // Preservar TODOS os atributos originais
+            pontos: j.pontos || 0,
+            faltas: j.faltas || 0,
+            stamina: j.stamina || 100, 
+            eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+            tempoPosse: j.tempoPosse || 0,
             time: null as null
           })) : []
         })));
@@ -503,10 +512,12 @@ export default function Home() {
       if (jogadoresBancoSalvos) {
         const jogadoresBancoCarregados = JSON.parse(jogadoresBancoSalvos);
         setJogadoresBanco(jogadoresBancoCarregados.map((j: Jogador) => ({
-          ...j,
+          ...j, // Preservar TODOS os atributos originais
           stamina: j.stamina || 100,
           pontos: j.pontos || 0,
           faltas: j.faltas || 0,
+          eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+          tempoPosse: j.tempoPosse || 0,
           time: null as null
         })));
       }
@@ -518,28 +529,34 @@ export default function Home() {
         // Carregar todos os estados
         if (Array.isArray(estado.jogadoresA)) {
           setJogadoresA(estado.jogadoresA.map((j: Jogador) => ({
-            ...j,
+            ...j, // Preservar TODOS os atributos originais
             pontos: j.pontos || 0,
             faltas: j.faltas || 0,
-            stamina: j.stamina || 100
+            stamina: j.stamina || 100,
+            eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+            tempoPosse: j.tempoPosse || 0
           })));
         }
 
         if (Array.isArray(estado.jogadoresB)) {
           setJogadoresB(estado.jogadoresB.map((j: Jogador) => ({
-            ...j,
+            ...j, // Preservar TODOS os atributos originais
             pontos: j.pontos || 0,
             faltas: j.faltas || 0,
-            stamina: j.stamina || 100
+            stamina: j.stamina || 100,
+            eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+            tempoPosse: j.tempoPosse || 0
           })));
         }
 
         if (Array.isArray(estado.jogadoresBanco)) {
           setJogadoresBanco(estado.jogadoresBanco.map((j: Jogador) => ({
-            ...j,
+            ...j, // Preservar TODOS os atributos originais
             pontos: j.pontos || 0,
             faltas: j.faltas || 0,
             stamina: j.stamina || 100,
+            eficiencia: j.eficiencia || 0, // Garantir que eficiência é preservada
+            tempoPosse: j.tempoPosse || 0,
             time: null as null
           })));
         }
@@ -1177,7 +1194,9 @@ export default function Home() {
       faltas: 0,
       time: teamToAddPlayer,
       tempoPosse: 0,
-      stamina: 100
+      stamina: 100,
+      eficiencia: 0, // Iniciar com eficiência zero
+      historicoTimes: [] // Iniciar com histórico vazio
     };
 
     if (teamToAddPlayer === 'A') {
@@ -1282,6 +1301,7 @@ export default function Home() {
       time: null as null,
       tempoPosse: 0,
       stamina: 100, // Sempre começar com estamina cheia
+      eficiencia: 0, // Iniciar com eficiência zero
       historicoTimes: [] // Iniciar com histórico vazio
     };
 
@@ -1315,14 +1335,12 @@ export default function Home() {
       });
     }
 
-    // Não manipular a stamina aqui, ela só deve mudar com o tempo de jogo
-    // Atualizar o jogador com seu novo time, mantendo pontos, faltas e stamina
+    // Atualizar o jogador mantendo TODOS os atributos originais
     const jogadorAtualizado: Jogador = {
-      ...jogador,
-      id: Date.now(), // Gerar um novo ID único baseado em timestamp
-      time: time,
-      historicoTimes: historicoAtualizado
-      // Mantém stamina, pontos e faltas do jogador
+      ...jogador,                     // Mantém todos os atributos originais
+      time: time,                     // Atualiza apenas o time
+      historicoTimes: historicoAtualizado,
+      // Não zeramos nenhum atributo, mantemos todos os valores originais
     };
 
     // Remover jogador do banco
@@ -1334,6 +1352,11 @@ export default function Home() {
     } else {
       setJogadoresB([...jogadoresB, jogadorAtualizado]);
     }
+
+    // Salvar estado imediatamente para garantir persistência
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
   };
 
   // Função para retornar jogador ao banco
@@ -1351,14 +1374,16 @@ export default function Home() {
       faltas: jogador.faltas
     }];
 
-    // Não manipular a stamina aqui, ela só deve mudar com o tempo de jogo
-    // Atualizar o jogador para o banco, mantendo todas as estatísticas
+    // Calcular eficiência atual do jogador antes de ir para o banco
+    const eficienciaAtual = calcularEficiencia(jogador);
+
+    // Atualizar o jogador para o banco, mantendo TODOS os atributos
     const jogadorAtualizado: Jogador = {
-      ...jogador,
-      id: Date.now(), // Gerar um novo ID único baseado em timestamp
-      time: null as null,
-      historicoTimes: historicoAtualizado
-      // Mantém stamina, pontos e faltas do jogador
+      ...jogador,                     // Primeiro preservamos TODOS os atributos originais
+      time: null as null,             // Time muda para null (banco)
+      historicoTimes: historicoAtualizado,
+      eficiencia: eficienciaAtual,    // Atualizamos a eficiência com o valor calculado
+      stamina: jogador.stamina || 100 // Garantimos que a stamina seja mantida
     };
 
     // Remover do time atual
@@ -1368,8 +1393,13 @@ export default function Home() {
       setJogadoresB(jogadoresB.filter(j => j.id !== jogador.id));
     }
 
-    // Adicionar ao banco
+    // Adicionar ao banco com todos os atributos preservados
     setJogadoresBanco([...jogadoresBanco, jogadorAtualizado]);
+
+    // Salvar estado imediatamente para garantir persistência
+    setTimeout(() => {
+      salvarEstado();
+    }, 300);
   };
 
   // Atualizar efeito para reduzir stamina apenas durante o jogo em andamento
@@ -2498,35 +2528,44 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
-
-                  {/* Barra de stamina */}
-                  <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
-                    <div
-                      className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' :
-                          jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'
-                        }`}
-                      style={{ width: `${jogador.stamina}%` }}
-                    />
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1">
-                    Estamina: {(Number(jogador.stamina ?? 100)).toFixed(0)}%
-                  </div>
-
-                  {/* Stats do jogador */}
-                  {jogador.pontos > 0 && (
-                    <div className="mt-2 text-xs text-gray-300">
-                      <p>Pontos: {jogador.pontos}</p>
-                      <p>Faltas: {jogador.faltas}</p>
+                  
+                  {/* Eficiência e histórico do jogador */}
+                  {(jogador.eficiencia !== undefined && jogador.eficiencia > 0) && (
+                    <div className="text-sm text-yellow-400 mb-2">
+                      Eficiência: {jogador.eficiencia.toFixed(1)}
                     </div>
                   )}
                   
-                  {/* Botão para remover o jogador */}
-                  <button
-                    className="w-full mt-2 p-1 bg-red-800 text-xs rounded hover:bg-red-900"
-                    onClick={() => iniciarRemocaoJogador(jogador)}
-                  >
-                    Remover Jogador
-                  </button>
+                  {/* Histórico de times do jogador */}
+                  {jogador.historicoTimes && jogador.historicoTimes.length > 0 && (
+                    <div className="text-xs text-gray-300 mb-2">
+                      <p>Histórico:</p>
+                      {jogador.historicoTimes.map((registro, idx) => (
+                        <div key={`hist-${jogador.id}-${idx}`} className="ml-2">
+                          {registro.time === 'A' ? timeAName : timeBName}: {registro.pontos} pts, {registro.faltas} faltas
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Barra de stamina */}
+                  <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full ${jogador.stamina > 70 ? 'bg-green-500' : jogador.stamina > 30 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                      style={{ width: `${jogador.stamina}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center mt-1">
+                    <div className="text-xs text-gray-400">
+                      Estamina: {Math.floor(jogador.stamina)}%
+                    </div>
+                    <button
+                      className="p-1 bg-red-800 text-xs rounded hover:bg-red-700"
+                      onClick={() => iniciarRemocaoJogador(jogador)}
+                    >
+                      Remover
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -2562,6 +2601,13 @@ export default function Home() {
                       <div className="text-sm text-gray-400">
                         {jogador.pontos} pts | {jogador.faltas} faltas
                       </div>
+                      
+                      {/* Histórico do jogador se existir */}
+                      {jogador.historicoTimes && jogador.historicoTimes.length > 0 && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          Histórico: {jogador.historicoTimes.reduce((total, h) => total + h.pontos, 0)} pts totais
+                        </div>
+                      )}
 
                       {/* Barra de stamina */}
                       <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">
@@ -2625,6 +2671,13 @@ export default function Home() {
                       <div className="text-sm text-gray-400">
                         {jogador.pontos} pts | {jogador.faltas} faltas
                       </div>
+                      
+                      {/* Histórico do jogador se existir */}
+                      {jogador.historicoTimes && jogador.historicoTimes.length > 0 && (
+                        <div className="text-xs text-gray-400 mt-1">
+                          Histórico: {jogador.historicoTimes.reduce((total, h) => total + h.pontos, 0)} pts totais
+                        </div>
+                      )}
 
                       {/* Barra de stamina */}
                       <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden mt-2">

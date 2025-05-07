@@ -16,6 +16,7 @@ export const th = {
   removerPosseBola: "ลบการครองบอล",
   banco: "ม้านั่งสำรอง",
   remover: "ลบ",
+  salvar: "บันทึก",
   
   // ทีม
   timeA: "ทีม A",

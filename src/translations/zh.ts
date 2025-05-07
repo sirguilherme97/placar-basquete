@@ -16,6 +16,7 @@ export const zh = {
   removerPosseBola: "移除球权",
   banco: "替补席",
   remover: "移除",
+  salvar: "保存",
   pontosDoTimeA: "A队得分",
   pontosDoTimeB: "B队得分",
   

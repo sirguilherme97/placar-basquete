@@ -16,6 +16,7 @@ export const bn = {
   removerPosseBola: "বল পজেশন সরান",
   banco: "বেঞ্চ",
   remover: "সরান",
+  salvar: "সংরক্ষণ করুন",
   pontosDoTimeA: "টিম A-এর পয়েন্ট",
   pontosDoTimeB: "টিম B-এর পয়েন্ট",
   

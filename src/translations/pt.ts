@@ -16,6 +16,7 @@ export const pt = {
   removerPosseBola: "Remover Posse da Bola",
   banco: "Banco",
   remover: "Remover",
+  salvar: "Salvar",
 
   // Times
   timeA: "Time A",

@@ -16,6 +16,7 @@ export const ar = {
   removerPosseBola: "إزالة الاستحواذ على الكرة",
   banco: "المقاعد",
   remover: "إزالة",
+  salvar: "حفظ",
   pontosDoTimeA: "نقاط الفريق أ",
   pontosDoTimeB: "نقاط الفريق ب",
   

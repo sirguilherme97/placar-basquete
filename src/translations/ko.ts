@@ -16,6 +16,7 @@ export const ko = {
   removerPosseBola: "볼 소유권 제거",
   banco: "벤치",
   remover: "제거",
+  salvar: "저장",
   
   // 팀
   timeA: "A팀",

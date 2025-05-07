@@ -16,6 +16,7 @@ export const he = {
   removerPosseBola: "הסר החזקת כדור",
   banco: "ספסל",
   remover: "הסר",
+  salvar: "שמור",
   pontosDoTimeA: "נקודות קבוצה א",
   pontosDoTimeB: "נקודות קבוצה ב",
   

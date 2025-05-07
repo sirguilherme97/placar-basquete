@@ -16,6 +16,7 @@ export const fr = {
   removerPosseBola: "Retirer la possession du ballon",
   banco: "Banc",
   remover: "Supprimer",
+  salvar: "Enregistrer",
   pontosDoTimeA: "Points de l'Équipe A",
   pontosDoTimeB: "Points de l'Équipe B",
   

@@ -16,6 +16,7 @@ export const vi = {
   removerPosseBola: "Xóa Quyền Sở Hữu Bóng",
   banco: "Ghế Dự Bị",
   remover: "Xóa",
+  salvar: "Lưu",
   
   // Đội
   timeA: "Đội A",

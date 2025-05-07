@@ -16,6 +16,7 @@ export const id = {
   removerPosseBola: "Hapus Kepemilikan Bola",
   banco: "Bangku Cadangan",
   remover: "Hapus",
+  salvar: "Simpan",
   
   // Tim
   timeA: "Tim A",

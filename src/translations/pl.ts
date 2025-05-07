@@ -16,6 +16,7 @@ export const pl = {
   removerPosseBola: "Usuń Posiadanie Piłki",
   banco: "Ławka Rezerwowych",
   remover: "Usuń",
+  salvar: "Zapisz",
   
   // Drużyny
   timeA: "Drużyna A",

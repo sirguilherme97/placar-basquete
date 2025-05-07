@@ -16,6 +16,7 @@ export const en = {
   removerPosseBola: "Remove Ball Possession",
   banco: "Bench",
   remover: "Remove",
+  salvar: "Save",
   pontosDoTimeA: "Points of Team A",
   pontosDoTimeB: "Points of Team B",
   // Teams

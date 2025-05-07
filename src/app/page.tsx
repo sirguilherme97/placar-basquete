@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
 import { GiWhistle, GiCardPlay } from "react-icons/gi";
@@ -378,8 +378,8 @@ export default function Home() {
     }
   };
 
-  // Função para salvar estado no localStorage
-  const salvarEstado = () => {
+  // Função para salvar estado no localStorage com useCallback
+  const salvarEstado = useCallback(() => {
     try {
       // Garantir que todos os jogadores tenham campos com valores padrão, se ausentes, mas preservando todos os dados existentes
       const jogadoresAEmSegundos = jogadoresA.map(j => ({
@@ -451,10 +451,15 @@ export default function Home() {
     } catch (error) {
       console.error('Erro ao salvar estado:', error);
     }
-  };
+  }, [
+    jogadoresA, jogadoresB, jogadoresBanco, historicoA, historicoB, faltas,
+    timeAName, timeBName, games, pausas, faltasA, faltasB,
+    pontosA, pontosB, seconds, isPaused, isGameStarted,
+    posseBola, ultimaAtualizacaoPosse, tempoInicio, tempoFim
+  ]);
 
-  // Função para carregar estado do localStorage
-  const carregarEstado = () => {
+  // Função para carregar estado do localStorage com useCallback
+  const carregarEstado = useCallback(() => {
     try {
       const estadoSalvo = localStorage.getItem('estadoJogo');
       const jogadoresBancoSalvos = localStorage.getItem('jogadoresBanco');
@@ -597,9 +602,34 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Erro ao carregar estado:', error);
-      resetarTudo();
+      // Em vez de chamar resetarTudo, configurar os valores padrão diretamente
+      setJogadoresA([]);
+      setJogadoresB([]);
+      setJogadoresBanco([]);
+      setHistoricoA([]);
+      setHistoricoB([]);
+      setPontosA(0);
+      setPontosB(0);
+      setTimeAName("Team A");
+      setTimeBName("Team B");
+      setSeconds(0);
+      setIsPaused(true);
+      setFaltasA(0);
+      setFaltasB(0);
+      setFaltas([]);
+      setPausas(0);
+      setIsGameStarted(false);
+      setPosseBola(null);
+      setUltimaAtualizacaoPosse(null);
+      setTempoInicio(null);
+      setTempoFim(null);
+      setAproveitamento({
+        mediaPontosJogador: '0',
+        mediaPontosTimeA: '0',
+        mediaPontosTimeB: '0'
+      });
     }
-  };
+  }, []); // Como os setters de useState não mudam, podemos deixar o array de dependências vazio
 
   // Função para calcular o tempo total de jogo em segundos
   const calcularTempoJogo = () => {
@@ -1008,15 +1038,10 @@ export default function Home() {
     // Definir novo jogador com a posse
     setPosseBola({ time: jogador.time as 'A' | 'B', jogadorId: jogador.id });
     setUltimaAtualizacaoPosse(Date.now());
-
-    // Salvar estado para garantir persistência
-    setTimeout(() => {
-      salvarEstado();
-    }, 300);
   };
 
   // Função para remover a posse da bola
-  const removerPosseBola = () => {
+  const removerPosseBola = useCallback(() => {
     // Se já havia um jogador com posse, registrar o tempo de posse final
     if (posseBola) {
       const agora = Date.now();
@@ -1042,12 +1067,17 @@ export default function Home() {
     // Limpar a posse
     setPosseBola(null);
     setUltimaAtualizacaoPosse(null);
+  }, [posseBola, ultimaAtualizacaoPosse, jogadoresA, jogadoresB, setPosseBola, setUltimaAtualizacaoPosse, setJogadoresA, setJogadoresB]);
 
-    // Salvar estado
-    setTimeout(() => {
+  // Salvar estado quando posseBola mudar
+  useEffect(() => {
+    // Usar um timeout para evitar múltiplas chamadas
+    const timeout = setTimeout(() => {
       salvarEstado();
     }, 300);
-  };
+    
+    return () => clearTimeout(timeout);
+  }, [posseBola, salvarEstado]);
 
   const handleTouchEnd = () => {
     // Não desativamos mais a posse ao soltar, ela permanece ativa
@@ -1099,7 +1129,7 @@ export default function Home() {
 
       return () => clearInterval(intervalId);
     }
-  }, [posseBola, isPaused, jogadoresA, jogadoresB, ultimaAtualizacaoPosse]);
+  }, [posseBola, isPaused, jogadoresA, jogadoresB, ultimaAtualizacaoPosse, removerPosseBola]);
 
   // Funções para reiniciar os valores do Time A e Time B
   const handleRestartA = () => {
@@ -1262,18 +1292,12 @@ export default function Home() {
     }, 1000); // Salvar após 1 segundo de inatividade
 
     return () => clearTimeout(salvarEstadoComTimeout);
-  }, [
-    jogadoresA, jogadoresB, historicoA, historicoB, faltas,
-    timeAName, timeBName, games, pausas, faltasA, faltasB,
-    pontosA, pontosB, seconds, isPaused, isGameStarted,
-    posseBola, ultimaAtualizacaoPosse,
-    tempoInicio, tempoFim
-  ]);
+  }, [salvarEstado]);
 
-  // Carregar estado ao iniciar
+  // Carregar estado ao iniciar - executar apenas uma vez
   useEffect(() => {
     carregarEstado();
-  }, []);
+  }, []);  // Removemos a dependência para garantir que rode apenas uma vez
 
   // Atualizar médias sempre que pontos ou jogadores mudarem
   useEffect(() => {
@@ -1514,12 +1538,14 @@ export default function Home() {
     <main className="bg-zinc-900 text-zinc-50 w-screen h-full">
       {/* Botão fixo para salvar game */}
       <button
-        className="absolute top-4 right-4 p-3 bg-green-500 rounded-full hover:bg-green-600 z-50"
+        className="fixed bottom-6 right-6 sm:top-5 sm:bottom-auto sm:right-5 p-4 md:pl-4 sm:pr-1 sm:pr-2 md:py-4 bg-green-500 rounded-full hover:bg-green-600 hover:scale-110 active:scale-95 transition-all shadow-lg z-50 flex items-center justify-center"
         onClick={() => setShowGamesModal(true)}
+        aria-label={translations.salvarGameAtual}
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
         </svg>
+        <span className="hidden sm:inline-block ml-2 font-medium">{translations.salvar}</span>
       </button>
 
       {/* Modal de games salvos */}
@@ -1594,21 +1620,21 @@ export default function Home() {
       )}
 
       {/* Tabs de navegação */}
-      <div className="flex justify-center gap-4 mt-4">
+      <div className="flex justify-center gap-2 mt-4 px-4">
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'placar' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+          className={`flex-1 px-4 py-2.5 rounded-md text-sm sm:text-base font-medium ${activeTab === 'placar' ? 'bg-blue-500 shadow-md' : 'bg-zinc-700'}`}
           onClick={() => setActiveTab('placar')}
         >
           {translations.placar}
         </button>
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'informacoes' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+          className={`flex-1 px-4 py-2.5 rounded-md text-sm sm:text-base font-medium ${activeTab === 'informacoes' ? 'bg-blue-500 shadow-md' : 'bg-zinc-700'}`}
           onClick={() => setActiveTab('informacoes')}
         >
           {translations.informacoes}
         </button>
         <button
-          className={`px-4 py-2 rounded ${activeTab === 'estatisticas' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+          className={`flex-1 px-4 py-2.5 rounded-md text-sm sm:text-base font-medium ${activeTab === 'estatisticas' ? 'bg-blue-500 shadow-md' : 'bg-zinc-700'}`}
           onClick={() => setActiveTab('estatisticas')}
         >
           {translations.estatisticas}
@@ -1618,14 +1644,14 @@ export default function Home() {
       {activeTab === 'placar' ? (
         <>
           <div className="w-screen h-40 flex items-center justify-center">
-            <h1 className="font-bold text-[80pt]">{`${minutes}:${formattedSeconds}`}</h1>
+            <h1 className="font-bold text-[60pt] sm:text-[80pt]">{`${minutes}:${formattedSeconds}`}</h1>
           </div>
 
-          <div className="w-screen flex justify-between gap-2 max-w-[1440px] mx-auto">
-            <div className="h-52 flex flex-1 flex-col items-center justify-between pt-9 bg-red-500">
+          <div className="w-screen flex flex-col sm:flex-row justify-between gap-4 sm:gap-2 max-w-[1440px] mx-auto px-4 sm:px-0">
+            <div className="h-auto sm:h-52 flex flex-1 flex-col items-center justify-between pt-6 sm:pt-9 bg-red-500 rounded-lg sm:rounded-none shadow-md">
               <div className="relative flex flex-col items-center justify-center gap-3">
-                <p className="text-5xl font-bold">{pontosA}</p>
-                <VscDebugRestart onClick={handleRestartA} size={20} className='absolute right-0 -top-8' />
+                <p className="text-4xl sm:text-5xl font-bold">{pontosA}</p>
+                <VscDebugRestart onClick={handleRestartA} size={20} className='absolute right-2 -top-6 sm:right-0 sm:-top-8' />
                 <input
                   type="text"
                   value={timeAName}
@@ -1634,32 +1660,32 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1 select-none">
-                <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 select-none rounded-b-lg sm:rounded-none">
+                <button
+                  className="bg-yellow-500 active:bg-yellow-700 hover:bg-yellow-600 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer rounded-bl-lg sm:rounded-none"
                   onClick={() => handlePointClick('A', 3)}
                 >
-                  <p className="w-full h-full flex items-center justify-center">+3</p>
-                </div>
-                <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  +3
+                </button>
+                <button
+                  className="bg-yellow-500 active:bg-yellow-700 hover:bg-yellow-600 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer border-l border-r border-yellow-700"
                   onClick={() => handlePointClick('A', 2)}
                 >
-                  <p className="w-full h-full flex items-center justify-center">+2</p>
-                </div>
-                <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  +2
+                </button>
+                <button
+                  className="bg-yellow-500 active:bg-yellow-700 hover:bg-yellow-600 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer rounded-br-lg sm:rounded-none"
                   onClick={() => handlePointClick('A', 1)}
                 >
-                  <p className="w-full h-full flex items-center justify-center">+1</p>
-                </div>
+                  +1
+                </button>
               </div>
             </div>
 
-            <div className="h-52 flex flex-1 flex-col items-center justify-between pt-9 bg-blue-500">
+            <div className="h-auto sm:h-52 flex flex-1 flex-col items-center justify-between pt-6 sm:pt-9 bg-blue-500 rounded-lg sm:rounded-none shadow-md">
               <div className="relative flex flex-col items-center justify-center gap-3">
-                <p className="text-5xl font-bold">{pontosB}</p>
-                <VscDebugRestart onClick={handleRestartB} size={20} className='absolute right-0 -top-8' />
+                <p className="text-4xl sm:text-5xl font-bold">{pontosB}</p>
+                <VscDebugRestart onClick={handleRestartB} size={20} className='absolute right-2 -top-6 sm:right-0 sm:-top-8' />
                 <input
                   type="text"
                   value={timeBName}
@@ -1668,25 +1694,25 @@ export default function Home() {
                 />
               </div>
 
-              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 gap-1 select-none">
-                <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+              <div className="flex w-full h-14 text-zinc-900 bg-zinc-900 select-none rounded-b-lg sm:rounded-none">
+                <button
+                  className="bg-yellow-500 active:bg-yellow-700 hover:bg-yellow-600 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer rounded-bl-lg sm:rounded-none"
                   onClick={() => handlePointClick('B', 3)}
                 >
-                  <p className="w-full h-full flex items-center justify-center">+3</p>
-                </div>
-                <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  +3
+                </button>
+                <button
+                  className="bg-yellow-500 active:bg-yellow-700 hover:bg-yellow-600 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer border-l border-r border-yellow-700"
                   onClick={() => handlePointClick('B', 2)}
                 >
-                  <p className="w-full h-full flex items-center justify-center">+2</p>
-                </div>
-                <div
-                  className="bg-yellow-500 active:bg-yellow-700 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer"
+                  +2
+                </button>
+                <button
+                  className="bg-yellow-500 active:bg-yellow-700 hover:bg-yellow-600 transition-all flex flex-1 items-center justify-center font-bold text-2xl cursor-pointer rounded-br-lg sm:rounded-none"
                   onClick={() => handlePointClick('B', 1)}
                 >
-                  <p className="w-full h-full flex items-center justify-center">+1</p>
-                </div>
+                  +1
+                </button>
               </div>
             </div>
           </div>
@@ -1724,7 +1750,7 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className='flex flex-col pt-10 items-center justify-center w-full'>
+              <div className='flex flex-col pt-0   items-center justify-center w-full'>
                 <div className="flex flex-col gap-4 mb-4">
 
                   {/* Botões de controle */}
@@ -1886,18 +1912,18 @@ export default function Home() {
         </>
       ) : activeTab === 'informacoes' ? (
         <div className="mt-8 p-4">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex flex-col items-center gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <div className="flex flex-col items-center sm:items-start gap-3 w-full sm:w-auto">
               <h2 className="text-2xl font-bold">{translations.informacoes}</h2>
-              <div className="flex gap-2">
+              <div className="flex w-full sm:w-auto">
                 <button
-                  className={`px-3 py-1 rounded ${historicoView === 'times' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                  className={`flex-1 sm:flex-none px-4 py-2 rounded-l-md ${historicoView === 'times' ? 'bg-blue-500' : 'bg-zinc-700'}`}
                   onClick={() => setHistoricoView('times')}
                 >
                   {translations.porTime}
                 </button>
                 <button
-                  className={`px-3 py-1 rounded ${historicoView === 'cronologico' ? 'bg-blue-500' : 'bg-zinc-700'}`}
+                  className={`flex-1 sm:flex-none px-4 py-2 rounded-r-md ${historicoView === 'cronologico' ? 'bg-blue-500' : 'bg-zinc-700'}`}
                   onClick={() => setHistoricoView('cronologico')}
                 >
                   {translations.cronologico}
@@ -1905,7 +1931,7 @@ export default function Home() {
               </div>
             </div>
             <button
-              className="px-4 py-2 bg-red-500 rounded hover:bg-red-600"
+              className="w-full sm:w-auto px-5 py-2.5 bg-red-500 rounded-md hover:bg-red-600 font-medium text-center"
               onClick={resetarTudo}
             >
               {translations.resetarTudo}

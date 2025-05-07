@@ -16,6 +16,7 @@ export const ja = {
   removerPosseBola: "ボール所持権を削除",
   banco: "ベンチ",
   remover: "削除",
+  salvar: "保存",
   pontosDoTimeA: "チームAの得点",
   pontosDoTimeB: "チームBの得点",
   

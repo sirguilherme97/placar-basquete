@@ -16,6 +16,7 @@ export const ru = {
   removerPosseBola: "Убрать владение мячом",
   banco: "Скамейка",
   remover: "Удалить",
+  salvar: "Сохранить",
   pontosDoTimeA: "Очки команды А",
   pontosDoTimeB: "Очки команды Б",
   

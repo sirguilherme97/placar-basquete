@@ -16,6 +16,7 @@ export const tr = {
   removerPosseBola: "Top Sahipliğini Kaldır",
   banco: "Yedek Kulübesi",
   remover: "Kaldır",
+  salvar: "Kaydet",
   
   // Takımlar
   timeA: "A Takımı",

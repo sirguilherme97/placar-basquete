@@ -16,6 +16,7 @@ export const fa = {
   removerPosseBola: "حذف مالکیت توپ",
   banco: "نیمکت ذخیره",
   remover: "حذف",
+  salvar: "ذخیره",
   
   // تیم‌ها
   timeA: "تیم A",

@@ -16,6 +16,7 @@ export const hi = {
   removerPosseBola: "बॉल पजेशन हटाएं",
   banco: "बेंच",
   remover: "हटाएं",
+  salvar: "सहेजें",
   pontosDoTimeA: "टीम A के अंक",
   pontosDoTimeB: "टीम B के अंक",
   

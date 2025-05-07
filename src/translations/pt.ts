@@ -2,6 +2,12 @@ export const pt = {
   language: "Português",
   languageSelector: "Selecionar idioma",
   
+  // Redes sociais
+  linkedin: "LinkedIn",
+  instagram: "Instagram",
+  github: "GitHub",
+  siteOficial: "Site Oficial",
+  
   // Componentes da interface
   placar: "Placar",
   informacoes: "Informações",

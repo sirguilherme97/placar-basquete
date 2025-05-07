@@ -3,8 +3,8 @@ import { LanguageProvider } from './context/LanguageContext'
 import Footer from './components/Footer'
 
 export const metadata = {
-  title: 'Basquete Morrinhos',
-  description: 'Timer e Placar - Jogo de Basquete em Morrinhos do Sul',
+  title: 'Basketball Scorer',
+  description: 'Teams and Scores - Record your basketball games',
 }
 
 export default function RootLayout({

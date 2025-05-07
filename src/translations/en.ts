@@ -2,6 +2,12 @@ export const en = {
   language: "English",
   languageSelector: "Select language",
   
+  // Social networks
+  linkedin: "LinkedIn",
+  instagram: "Instagram",
+  github: "GitHub",
+  siteOficial: "Official Website",
+  
   // Interface components
   placar: "Scoreboard",
   informacoes: "Information",

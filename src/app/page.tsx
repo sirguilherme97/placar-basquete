@@ -2672,12 +2672,12 @@ export default function Home() {
                         {translations.banco}
                       </button>
 
-                      <button
+                      {/* <button
                         className="p-2 bg-red-700 rounded hover:bg-red-800"
                         onClick={() => iniciarRemocaoJogador(jogador)}
                       >
                         {translations.remover}
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 ))}
@@ -2742,12 +2742,12 @@ export default function Home() {
                         {translations.banco}
                       </button>
 
-                      <button
+                      {/* <button
                         className="p-2 bg-red-700 rounded hover:bg-red-800"
                         onClick={() => iniciarRemocaoJogador(jogador)}
                       >
                         {translations.remover}
-                      </button>
+                      </button> */}
                     </div>
                   </div>
                 ))}

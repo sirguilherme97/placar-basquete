@@ -27,17 +27,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-icon-180.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
-      <body className='bg-zinc-900'>
+      <body className='bg-zinc-900 flex flex-col min-h-screen'>
         <LanguageProvider>
           <DirProvider>
-            <main className="pb-16">{children}</main>
+            <main className="flex-grow">{children}</main>
             <Analytics />
             <Footer />
           </DirProvider>

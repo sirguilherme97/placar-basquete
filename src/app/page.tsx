@@ -2535,7 +2535,7 @@ export default function Home() {
       )}
 
       {isPaused && activeTab === 'placar' && (
-        <div className="mt-5 border-t border-zinc-700 pt-4">
+        <div className="mt-5 border-t border-zinc-700 pt-0">
           {/* Área de jogadores disponíveis (banco) */}
           <div className="w-full px-4 py-4 bg-zinc-800 border-b border-zinc-600">
             <div className="flex justify-between items-center mb-4">

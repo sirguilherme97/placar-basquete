@@ -4,6 +4,33 @@ import { AiFillPlayCircle, AiFillPauseCircle } from "react-icons/ai";
 import { VscDebugRestart } from "react-icons/vsc";
 import { GiWhistle, GiCardPlay } from "react-icons/gi";
 import { useLanguage } from './context/LanguageContext';
+import {
+  Chart as ChartJS,
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  Filler,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+} from 'chart.js';
+import { Radar, Line, Bar, Doughnut } from 'react-chartjs-2';
+
+ChartJS.register(
+  RadialLinearScale,
+  PointElement,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  ArcElement,
+  Filler,
+  Tooltip,
+  Legend
+);
 
 interface Jogador {
   id: number; // ID único estático
@@ -154,6 +181,7 @@ export default function Home() {
   const [showAddBenchPlayerPopover, setShowAddBenchPlayerPopover] = useState(false);
   const [showRemoveConfirmation, setShowRemoveConfirmation] = useState(false);
   const [jogadorParaRemover, setJogadorParaRemover] = useState<Jogador | null>(null);
+  const [jogadorComparacao, setJogadorComparacao] = useState<Jogador | null>(null);
 
   function StartSound() {
     new Audio("/apito.webm").play();
@@ -1264,7 +1292,7 @@ export default function Home() {
       .slice(0, 3);
   };
 
-  // Formatação do tempo
+  // Calcular minutos e segundos formatados para exibição
   const minutes = Math.floor(seconds / 60);
   const formattedSeconds = seconds % 60 < 10 ? `0${seconds % 60}` : seconds % 60;
 
@@ -2108,8 +2136,8 @@ export default function Home() {
           {/* Modal de detalhes do jogador */}
           {showPlayerDetails && selectedPlayer && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-zinc-800 p-6 rounded-lg w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
-                <div className="flex justify-between items-center mb-4 sticky top-0 bg-zinc-800">
+              <div className="bg-zinc-800 p-6 rounded-lg w-11/12 max-w-4xl max-h-[85vh] overflow-y-auto">
+                <div className="flex justify-between items-center mb-4 sticky top-0 bg-zinc-800 z-10">
                   <h2 className="text-2xl font-bold">{selectedPlayer.nome}</h2>
                   <button
                     className="p-2 bg-red-500 rounded hover:bg-red-600"
@@ -2118,86 +2146,510 @@ export default function Home() {
                     {translations.fechar}
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-zinc-700 p-4 rounded-lg">
-                    <h3 className="text-xl font-bold mb-2">{translations.estatisticasGerais}</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>{translations.time}:</span>
-                        <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
+                
+                {/* Grade principal com 2 colunas */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                  {/* Coluna da esquerda: Stats básicas e gráfico radar */}
+                  <div className="space-y-4">
+                    {/* Stats básicas */}
+                    <div className="bg-zinc-700 p-4 rounded-lg">
+                      <h3 className="text-xl font-bold mb-2">{translations.estatisticasGerais}</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>{translations.time}:</span>
+                          <span className="font-bold">{selectedPlayer.time === 'A' ? timeAName : timeBName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{translations.totalPontos}:</span>
+                          <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{translations.totalFaltas}:</span>
+                          <span className="font-bold text-red-500">{getPlayerStats(selectedPlayer).totalFaltas}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{translations.tempoPosse}:</span>
+                          <span className="font-bold">{formatarTempo(selectedPlayer.tempoPosse || 0)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{translations.pontosPorMinuto}:</span>
+                          <span className="font-bold">
+                            {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span>{translations.totalPontos}:</span>
-                        <span className="font-bold text-yellow-500">{getPlayerStats(selectedPlayer).totalPontos}</span>
+                    </div>
+                    
+                    {/* Gráfico de radar (aranha) */}
+                    <div className="bg-zinc-700 p-4 rounded-lg">
+                      <h3 className="text-xl font-bold mb-4">{translations.perfilJogador}</h3>
+                      
+                      {/* Seletor de jogador para comparação */}
+                      <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">{translations.compararCom}</label>
+                        <select 
+                          className="w-full bg-zinc-800 text-white rounded p-2"
+                          onChange={(e) => {
+                            const jogadorId = Number(e.target.value);
+                            if (jogadorId === 0) {
+                              setJogadorComparacao(null);
+                            } else {
+                              const todosJogadores = [...jogadoresA, ...jogadoresB];
+                              const jogador = todosJogadores.find(j => j.id === jogadorId);
+                              if (jogador) setJogadorComparacao(jogador);
+                            }
+                          }}
+                        >
+                          <option value="0">{translations.nenhumJogador}</option>
+                          {
+                            [...jogadoresA, ...jogadoresB]
+                              .filter(j => j.id !== selectedPlayer.id)
+                              .map(jogador => (
+                                <option key={`compare-${jogador.id}`} value={jogador.id}>
+                                  {jogador.nome} ({jogador.time === 'A' ? timeAName : timeBName})
+                                </option>
+                              ))
+                          }
+                        </select>
                       </div>
-                      <div className="flex justify-between">
-                        <span>{translations.totalFaltas}:</span>
-                        <span className="font-bold text-red-500">{getPlayerStats(selectedPlayer).totalFaltas}</span>
+                      
+                      <div className="w-full h-64 relative">
+                        {(() => {
+                          const stats = getPlayerStats(selectedPlayer);
+                          const cestas3pts = stats.pontos.filter(p => p.pontos === 3).length;
+                          const cestas2pts = stats.pontos.filter(p => p.pontos === 2).length;
+                          const lancesLivres = stats.pontos.filter(p => p.pontos === 1).length;
+                          const eficienciaJogador = calcularEficiencia(selectedPlayer);
+                          
+                          // Criar dataset para o jogador principal com valores absolutos
+                          const datasets = [
+                            {
+                              label: selectedPlayer.nome,
+                              data: [
+                                stats.totalPontos,
+                                cestas3pts,
+                                cestas2pts,
+                                lancesLivres,
+                                eficienciaJogador
+                              ],
+                              backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                              borderColor: 'rgba(255, 206, 86, 1)',
+                              borderWidth: 2,
+                              pointBackgroundColor: 'rgba(255, 206, 86, 1)',
+                              pointRadius: 4
+                            }
+                          ];
+                          
+                          // Adicionar dataset do jogador de comparação, se existir
+                          if (jogadorComparacao) {
+                            const statsComp = getPlayerStats(jogadorComparacao);
+                            const cestas3ptsComp = statsComp.pontos.filter(p => p.pontos === 3).length;
+                            const cestas2ptsComp = statsComp.pontos.filter(p => p.pontos === 2).length;
+                            const lancesLivresComp = statsComp.pontos.filter(p => p.pontos === 1).length;
+                            const eficienciaComp = calcularEficiencia(jogadorComparacao);
+                            
+                            datasets.push({
+                              label: jogadorComparacao.nome,
+                              data: [
+                                statsComp.totalPontos,
+                                cestas3ptsComp,
+                                cestas2ptsComp,
+                                lancesLivresComp,
+                                eficienciaComp
+                              ],
+                              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                              borderColor: 'rgba(75, 192, 192, 1)',
+                              borderWidth: 2,
+                              pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                              pointRadius: 4
+                            });
+                          }
+                          
+                          // Determinar valores máximos para cada categoria
+                          const todosJogadores = [...jogadoresA, ...jogadoresB];
+                          const maxPontos = Math.max(
+                            ...todosJogadores.map(j => getPlayerStats(j).totalPontos),
+                            stats.totalPontos,
+                            jogadorComparacao ? getPlayerStats(jogadorComparacao).totalPontos : 0,
+                            10 // Valor mínimo do máximo
+                          );
+                          
+                          const maxCestas3 = Math.max(
+                            ...todosJogadores.map(j => getPlayerStats(j).pontos.filter(p => p.pontos === 3).length),
+                            cestas3pts,
+                            jogadorComparacao ? getPlayerStats(jogadorComparacao).pontos.filter(p => p.pontos === 3).length : 0,
+                            3 // Valor mínimo do máximo
+                          );
+                          
+                          const maxCestas2 = Math.max(
+                            ...todosJogadores.map(j => getPlayerStats(j).pontos.filter(p => p.pontos === 2).length),
+                            cestas2pts,
+                            jogadorComparacao ? getPlayerStats(jogadorComparacao).pontos.filter(p => p.pontos === 2).length : 0,
+                            5 // Valor mínimo do máximo
+                          );
+                          
+                          const maxLances = Math.max(
+                            ...todosJogadores.map(j => getPlayerStats(j).pontos.filter(p => p.pontos === 1).length),
+                            lancesLivres,
+                            jogadorComparacao ? getPlayerStats(jogadorComparacao).pontos.filter(p => p.pontos === 1).length : 0,
+                            5 // Valor mínimo do máximo
+                          );
+                          
+                          const maxEficiencia = Math.max(
+                            ...todosJogadores.map(j => calcularEficiencia(j)),
+                            eficienciaJogador,
+                            jogadorComparacao ? calcularEficiencia(jogadorComparacao) : 0,
+                            5 // Valor mínimo do máximo
+                          );
+                          
+                          const radarData = {
+                            labels: [
+                              translations.pontuacao, 
+                              translations.cestas3pts, 
+                              translations.cestas2pts, 
+                              translations.lancesLivres, 
+                              translations.eficiencia
+                            ],
+                            datasets: jogadorComparacao ? datasets : [datasets[0]]
+                          };
+                          
+                          const radarOptions = {
+                            scales: {
+                              r: {
+                                angleLines: {
+                                  color: 'rgba(255, 255, 255, 0.15)'
+                                },
+                                grid: {
+                                  color: 'rgba(255, 255, 255, 0.05)'
+                                },
+                                pointLabels: {
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  font: {
+                                    size: 10
+                                  }
+                                },
+                                ticks: {
+                                  color: 'rgba(255, 255, 255, 0.5)',
+                                  backdropColor: 'transparent',
+                                  showLabelBackdrop: false,
+                                  stepSize: Math.ceil(Math.max(maxPontos, maxCestas3, maxCestas2, maxLances, maxEficiencia) / 5)
+                                },
+                                suggestedMin: 0,
+                                suggestedMax: Math.ceil(Math.max(maxPontos, maxCestas3 * 2, maxCestas2, maxLances, maxEficiencia * 1.2))
+                              }
+                            },
+                            plugins: {
+                              legend: {
+                                display: jogadorComparacao ? true : false,
+                                position: 'bottom' as const,
+                                labels: {
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                }
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context: any) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.raw || 0;
+                                    const dataPoint = context.dataIndex;
+                                    const chartData = context.chart.data;
+                                    const categoryName = chartData.labels[dataPoint];
+                                    
+                                    // Independente de onde o mouse está, sempre mostrar os dados organizados
+                                    // com o jogador principal primeiro e o de comparação depois
+                                    const mainLabel = chartData.datasets[0].label;
+                                    const mainValue = chartData.datasets[0].data[dataPoint];
+                                    
+                                    // Se não houver comparação, só mostramos os valores do jogador principal
+                                    if (!jogadorComparacao) {
+                                      return [`${categoryName}:`, `${mainLabel}: ${Number(mainValue).toFixed(1)}`];
+                                    }
+                                    
+                                    // Se houver comparação, mostramos ambos os jogadores
+                                    const compLabel = chartData.datasets[1].label;
+                                    const compValue = chartData.datasets[1].data[dataPoint];
+                                    
+                                    return [
+                                      `${categoryName}:`,
+                                      `${mainLabel}: ${Number(mainValue).toFixed(1)}`,
+                                      `${compLabel}: ${Number(compValue).toFixed(1)}`
+                                    ];
+                                  },
+                                  // Removemos o título padrão porque já incluímos a categoria no rótulo
+                                  title: function() {
+                                    return '';
+                                  }
+                                }
+                              }
+                            },
+                            maintainAspectRatio: false
+                          };
+                          
+                          return <Radar data={radarData} options={radarOptions} />;
+                        })()}
                       </div>
-                      <div className="flex justify-between">
-                        <span>{translations.tempoPosse}:</span>
-                        <span className="font-bold">{formatarTempo(selectedPlayer.tempoPosse || 0)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>{translations.pontosPorMinuto}:</span>
-                        <span className="font-bold">
-                          {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
-                        </span>
+                      
+                      {/* Legenda explicativa */}
+                      <div className="mt-4 text-xs text-zinc-400">
+                        <p>{translations.graficoAranhaExplicacaoAbsoluto}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="bg-zinc-700 p-4 rounded-lg">
-                    <h3 className="text-xl font-bold mb-2">{translations.calculoEficiencia}</h3>
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>{translations.pontosPorMinuto}:</span>
-                        <span className="font-bold text-yellow-500">
-                          {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
-                        </span>
+                  
+                  {/* Coluna da direita: Cálculo de eficiência e gráfico de distribuição de pontos */}
+                  <div className="space-y-4">
+                    {/* Cálculo de eficiência */}
+                    <div className="bg-zinc-700 p-4 rounded-lg">
+                      <h3 className="text-xl font-bold mb-2">{translations.calculoEficiencia}</h3>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <span>{translations.pontosPorMinuto}:</span>
+                          <span className="font-bold text-yellow-500">
+                            {((getPlayerStats(selectedPlayer).totalPontos / ((selectedPlayer.tempoPosse || 0) / 60)) || 0).toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{translations.penalidadeFaltas}:</span>
+                          <span className="font-bold text-red-500">
+                            -{(selectedPlayer.faltas || 0) * 2} {translations.pontos}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{translations.eficienciaFinal}:</span>
+                          <span className="font-bold">
+                            {calcularEficiencia(selectedPlayer).toFixed(1)} {translations.ptsMin}
+                          </span>
+                        </div>
+                        <div className="mt-4 text-sm text-zinc-400">
+                          <p>{translations.formula}</p>
+                          <p>{translations.maiorEficiencia}</p>
+                          <p>{translations.penalidade}</p>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span>{translations.penalidadeFaltas}:</span>
-                        <span className="font-bold text-red-500">
-                          -{(selectedPlayer.faltas || 0) * 2} {translations.pontos}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>{translations.eficienciaFinal}:</span>
-                        <span className="font-bold">
-                          {calcularEficiencia(selectedPlayer).toFixed(1)} {translations.ptsMin}
-                        </span>
-                      </div>
-                      <div className="mt-4 text-sm text-zinc-400">
-                        <p>{translations.formula}</p>
-                        <p>{translations.maiorEficiencia}</p>
-                        <p>{translations.penalidade}</p>
+                    </div>
+                    
+                    {/* Gráfico de distribuição de pontos (Doughnut) */}
+                    <div className="bg-zinc-700 p-4 rounded-lg">
+                      <h3 className="text-xl font-bold mb-4">{translations.distribuicaoPontos}</h3>
+                      <div className="w-full h-64 relative">
+                        {(() => {
+                          const stats = getPlayerStats(selectedPlayer);
+                          const cestas3pts = stats.pontos.filter(p => p.pontos === 3).length;
+                          const cestas2pts = stats.pontos.filter(p => p.pontos === 2).length;
+                          const lancesLivres = stats.pontos.filter(p => p.pontos === 1).length;
+                          
+                          const pontosDistribuicao = {
+                            labels: ['3pts', '2pts', '1pt'],
+                            datasets: [
+                              {
+                                data: [cestas3pts * 3, cestas2pts * 2, lancesLivres],
+                                backgroundColor: [
+                                  'rgba(255, 99, 132, 0.7)',
+                                  'rgba(54, 162, 235, 0.7)',
+                                  'rgba(75, 192, 192, 0.7)'
+                                ],
+                                borderColor: [
+                                  'rgba(255, 99, 132, 1)',
+                                  'rgba(54, 162, 235, 1)',
+                                  'rgba(75, 192, 192, 1)'
+                                ],
+                                borderWidth: 1,
+                              },
+                            ],
+                          };
+                          
+                          const options = {
+                            plugins: {
+                              legend: {
+                                position: 'bottom' as const,
+                                labels: {
+                                  color: 'rgba(255, 255, 255, 0.7)',
+                                  padding: 15,
+                                }
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: function(context: any) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                                    const percentage = Math.round((value / total) * 100);
+                                    
+                                    // Determinar o número de cestas baseado no tipo
+                                    let numCestas = 0;
+                                    if (label === '3pts') {
+                                      numCestas = cestas3pts;
+                                    } else if (label === '2pts') {
+                                      numCestas = cestas2pts;
+                                    } else if (label === '1pt') {
+                                      numCestas = lancesLivres;
+                                    }
+                                    
+                                    return `${label}: ${value} pts (${percentage}%) - ${numCestas} ${numCestas === 1 ? translations.cesta : translations.cestas}`;
+                                  }
+                                }
+                              }
+                            },
+                            maintainAspectRatio: false
+                          };
+                          
+                          return <Doughnut data={pontosDistribuicao} options={options} />;
+                        })()}
                       </div>
                     </div>
                   </div>
                 </div>
-                <div className="mt-4">
-                  <h3 className="text-xl font-bold mb-2">{translations.historicoPontos}</h3>
+                
+                {/* Gráficos adicionais em linha única */}
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Gráfico de evolução temporal (Line) */}
                   <div className="bg-zinc-700 p-4 rounded-lg">
-                    <div className="space-y-2">
-                      {getPlayerStats(selectedPlayer).pontos.map((ponto, index) => (
-                        <div key={index} className="flex justify-between items-center">
-                          <span className="text-yellow-500 font-bold">+{ponto.pontos}</span>
-                          <span className="text-zinc-400">{ponto.tempo}</span>
-                        </div>
-                      ))}
+                    <h3 className="text-xl font-bold mb-4">{translations.evolucaoTemporal}</h3>
+                    <div className="w-full h-64 relative">
+                      {(() => {
+                        const stats = getPlayerStats(selectedPlayer);
+                        
+                        // Ordenar pontos por tempo, mas de forma decrescente
+                        // Um tempo menor (01:00) significa mais perto do fim do jogo
+                        const pontosPorTempo = [...stats.pontos].sort((a, b) => {
+                          const [minA, secA] = a.tempo.split(':').map(Number);
+                          const [minB, secB] = b.tempo.split(':').map(Number);
+                          const tempoTotalA = minA * 60 + secA;
+                          const tempoTotalB = minB * 60 + secB;
+                          // Ordenar do tempo maior (início do jogo) para o menor (fim do jogo)
+                          return tempoTotalB - tempoTotalA;
+                        });
+                        
+                        // Criar array de tempos e pontos acumulados
+                        // Começando do início do jogo (tempo maior) até o fim (tempo menor)
+                        const tempos: string[] = [];
+                        const pontosAcumulados: number[] = [];
+                        let totalAcumulado = 0;
+                        
+                        pontosPorTempo.forEach(ponto => {
+                          totalAcumulado += ponto.pontos;
+                          tempos.push(ponto.tempo);
+                          pontosAcumulados.push(totalAcumulado);
+                        });
+                        
+                        // Adicionar legenda explicativa se tiver pontos
+                        if (tempos.length > 0) {
+                          const primeiroTempo = tempos[0]; // Tempo maior (início do jogo)
+                          const ultimoTempo = tempos[tempos.length - 1]; // Tempo menor (fim do jogo)
+                          
+                          // Adicionar ponto inicial zero, se necessário
+                          if (tempos.length > 0) {
+                            tempos.unshift(`${Math.ceil(seconds / 60)}:00`);
+                            pontosAcumulados.unshift(0);
+                          }
+                        }
+                        
+                        const lineData = {
+                          labels: tempos,
+                          datasets: [
+                            {
+                              label: translations.pontosAcumulados,
+                              data: pontosAcumulados,
+                              fill: true,
+                              backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                              borderColor: 'rgba(255, 206, 86, 1)',
+                              tension: 0.1
+                            }
+                          ]
+                        };
+                        
+                        const lineOptions = {
+                          scales: {
+                            y: {
+                              beginAtZero: true,
+                              grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                              },
+                              ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                              }
+                            },
+                            x: {
+                              grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                              },
+                              ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                // Mostrar menos rótulos em telas pequenas
+                                maxTicksLimit: 8
+                              },
+                              // Inverter o eixo X para mostrar o tempo decrescente (do maior para o menor)
+                              // Isso pode ser omitido pois já ordenamos os dados de forma decrescente
+                            }
+                          },
+                          plugins: {
+                            legend: {
+                              labels: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                              }
+                            },
+                            tooltip: {
+                              callbacks: {
+                                title: function(context: any) {
+                                  return `${translations.tempo}: ${context[0].label}`;
+                                },
+                                label: function(context: any) {
+                                  const value = context.raw || 0;
+                                  return `${translations.pontuacao}: ${value} pts`;
+                                }
+                              }
+                            }
+                          },
+                          maintainAspectRatio: false
+                        };
+                        
+                        return pontosPorTempo.length > 0 ? 
+                          <Line data={lineData} options={lineOptions} /> : 
+                          <div className="flex h-full items-center justify-center text-zinc-400">
+                            {translations.nenhumPontoRegistrado}
+                          </div>;
+                      })()}
                     </div>
                   </div>
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-xl font-bold mb-2">{translations.historicoFaltas}</h3>
-                  <div className="bg-zinc-700 p-4 rounded-lg">
-                    <div className="space-y-2">
-                      {getPlayerStats(selectedPlayer).faltas.map((falta, index) => (
-                        <div key={index} className="flex justify-between items-center">
-                          <span className="text-red-500 font-bold">{translations.falta}</span>
-                          <span className="text-zinc-400">{falta.tempo}</span>
+                  
+                  {/* Seção inferior com histórico */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Histórico de pontos */}
+                    <div className="bg-zinc-700 p-4 rounded-lg">
+                      <h3 className="text-xl font-bold mb-2">{translations.historicoPontos}</h3>
+                      <div className="max-h-60 overflow-y-auto">
+                        <div className="space-y-2">
+                          {getPlayerStats(selectedPlayer).pontos.length > 0 ? (
+                            getPlayerStats(selectedPlayer).pontos.map((ponto, index) => (
+                              <div key={index} className="flex justify-between items-center p-2 bg-zinc-800 rounded">
+                                <span className="text-yellow-500 font-bold">+{ponto.pontos}</span>
+                                <span className="text-zinc-400">{ponto.tempo}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-center text-zinc-400 py-4">{translations.nenhumPontoRegistrado}</p>
+                          )}
                         </div>
-                      ))}
+                      </div>
+                    </div>
+                    
+                    {/* Histórico de faltas */}
+                    <div className="bg-zinc-700 p-4 rounded-lg">
+                      <h3 className="text-xl font-bold mb-2">{translations.historicoFaltas}</h3>
+                      <div className="max-h-60 overflow-y-auto">
+                        <div className="space-y-2">
+                          {getPlayerStats(selectedPlayer).faltas.length > 0 ? (
+                            getPlayerStats(selectedPlayer).faltas.map((falta, index) => (
+                              <div key={index} className="flex justify-between items-center p-2 bg-zinc-800 rounded">
+                                <span className="text-red-500 font-bold">{translations.falta}</span>
+                                <span className="text-zinc-400">{falta.tempo}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-center text-zinc-400 py-4">{translations.nenhumaFaltaRegistrada}</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2742,12 +3194,7 @@ export default function Home() {
                         {translations.banco}
                       </button>
 
-                      {/* <button
-                        className="p-2 bg-red-700 rounded hover:bg-red-800"
-                        onClick={() => iniciarRemocaoJogador(jogador)}
-                      >
-                        {translations.remover}
-                      </button> */}
+                      {/* */}
                     </div>
                   </div>
                 ))}

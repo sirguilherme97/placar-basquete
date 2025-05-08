@@ -60,6 +60,7 @@ export const ja = {
   tempoDeJogo: "ゲーム時間",
   segundos: "秒",
   tempoJogo: "ゲーム時間",
+  tempo: "時間",
   
   // プレイヤーポップオーバー
   selecioneJogador: "プレイヤーを選択",
@@ -91,6 +92,10 @@ export const ja = {
   jogadorComMenosFaltas: "最もファウルが少ない選手",
   jogadorComMaisPosseBola: "最もボール所持時間が長い選手",
   historicoFaltas: "ファウル履歴",
+  mediaPorCesta: "シュート平均",
+  mediaPorLance: "フリースロー平均",
+  mediaPorFalta: "ファウル平均",
+  mediaPorTempo: "時間平均",
   porTime: "チーム別",
   posseDeBola: "ボール所持権",
   cronologico: "時系列順",
@@ -110,6 +115,8 @@ export const ja = {
   totalPontos: "合計ポイント",
   totais: "合計",
   totalFaltas: "合計ファウル",
+  totalCestas: "合計シュート",
+  totalLances: "合計フリースロー",
   tempoPosseBola: "ボール所持時間",
   calculoEficiencia: "効率の計算",
   penalidadeFaltas: "ファウルのペナルティ",
@@ -128,12 +135,33 @@ export const ja = {
   
   // バスケット
   cestas: "バスケット",
+  cesta: "ゴール",
   lances: "フリースロー",
   posse: "所持",
   copy: "あなたの試合を記録する",
   
   // 通知
-  falta: "ファウル"
+  falta: "ファウル",
+  
+  // 新しいグラフ
+  perfilJogador: "プレイヤープロフィール",
+  pontuacao: "スコアリング",
+  cestasLongas: "ロングレンジシュート",
+  disciplina: "規律",
+  distribuicaoPontos: "ポイント分布",
+  evolucaoTemporal: "時間経過",
+  pontosAcumulados: "累積ポイント",
+  nenhumPontoRegistrado: "記録されたポイントなし",
+  nenhumaFaltaRegistrada: "記録されたファウルなし",
+  
+  // プレイヤー比較
+  compararCom: "比較する",
+  nenhumJogador: "プレイヤーなし",
+  cestas3pts: "3ポイントシュート",
+  cestas2pts: "2ポイントシュート",
+  lancesLivres: "フリースロー",
+  graficoAranhaExplicacao: "このグラフは各カテゴリの予想最大値に対する選手のパフォーマンスをパーセンテージで表示します。",
+  graficoAranhaExplicacaoAbsoluto: "このグラフは選手の各統計の絶対値を表示します。"
 };
 
 export default ja; 

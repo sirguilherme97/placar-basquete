@@ -57,6 +57,7 @@ export const pt = {
   tempoDeJogo: "Tempo de Jogo",
   segundos: "SEGUNDOS",
   tempoJogo: "Tempo de Jogo",
+  tempo: "Tempo",
 
   // Popover jogador
   selecioneJogador: "Selecione o jogador",
@@ -88,6 +89,16 @@ export const pt = {
   jogadorComMaisPosseBola: "Jogador com Mais Posse de Bola",
   historicoPontos: "Histórico de Pontos",
   historicoFaltas: "Histórico de Faltas",
+  mediaPorCesta: "Média por Cesta",
+  eficiencia: "Eficiência",
+  totalPontos: "Total de Pontos",
+  totalCestas: "Total de Cestas",
+  totalLances: "Total de Lances",
+  totalFaltas: "Total de Faltas",
+  
+  mediaPorLance: "Média por Lance",
+  mediaPorFalta: "Média por Falta",
+  mediaPorTempo: "Média por Tempo",
   porTime: "Por Time",
   posseDeBola: "Posse de Bola",
   cestas3pontos: "cestas de 3 pontos",
@@ -104,14 +115,11 @@ export const pt = {
   estatisticasGerais: "Estatísticas Gerais",
   time: "Time:",
   ptsMin: "pts/min",
-  totalPontos: "Total de Pontos",
   totais: "totais",
-  totalFaltas: "Total de Faltas",
   tempoPosseBola: "Tempo de Posse",
   calculoEficiencia: "Cálculo da Eficiência",
   penalidadeFaltas: "Penalidade por Faltas",
   eficienciaFinal: "Eficiência Final",
-  eficiencia: "Eficiência",
   formula: "Fórmula: (Pontos / Tempo de Posse em minutos) - (Faltas * 2)",
   maiorEficiencia: "Quanto mais pontos em menos tempo, maior a eficiência.",
   penalidade: "Cada falta reduz 2 pontos da eficiência.",
@@ -124,11 +132,32 @@ export const pt = {
   textRemovalConfirmation: "Esta ação não poderá ser desfeita.",
   // Cestas
   cestas: "cestas",
+  cesta: "cesta",
   lances: "lances",
   posse: "Posse",
   copy: "Registre seus jogos",
   // Notificações
-  falta: "Falta"
+  falta: "Falta",
+  
+  // Novos gráficos
+  perfilJogador: "Perfil do Jogador",
+  pontuacao: "Pontuação",
+  cestasLongas: "Cestas Longas",
+  disciplina: "Disciplina",
+  distribuicaoPontos: "Distribuição de Pontos",
+  evolucaoTemporal: "Evolução Temporal",
+  pontosAcumulados: "Pontos Acumulados",
+  nenhumPontoRegistrado: "Nenhum ponto registrado",
+  nenhumaFaltaRegistrada: "Nenhuma falta registrada",
+  
+  // Comparação de jogadores
+  compararCom: "Comparar com",
+  nenhumJogador: "Nenhum jogador",
+  cestas3pts: "Cestas de 3 pontos",
+  cestas2pts: "Cestas de 2 pontos",
+  lancesLivres: "Lances Livres",
+  graficoAranhaExplicacao: "O gráfico mostra o desempenho dos jogadores em porcentagem relativa ao máximo esperado em cada categoria.",
+  graficoAranhaExplicacaoAbsoluto: "O gráfico mostra os valores absolutos de cada estatística do jogador."
 };
 
 export default pt;

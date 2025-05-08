@@ -23,7 +23,11 @@ import th from '@/translations/th';
 import fa from '@/translations/fa';
 
 type Language = 'pt' | 'en' | 'es' | 'de' | 'ru' | 'fr' | 'zh' | 'hi' | 'ar' | 'ja' | 'it' | 'bn' | 'he' | 'ko' | 'id' | 'tr' | 'vi' | 'pl' | 'th' | 'fa';
-type Translations = typeof pt | typeof en | typeof es | typeof de | typeof ru | typeof fr | typeof zh | typeof hi | typeof ar | typeof ja | typeof it | typeof bn | typeof he | typeof ko | typeof id | typeof tr | typeof vi | typeof pl | typeof th | typeof fa;
+// Usando Record para permitir qualquer chave de string nas traduções
+type Translations = Record<string, string> & {
+  language: string;
+  languageSelector: string;
+};
 
 interface LanguageContextType {
   language: Language;

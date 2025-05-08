@@ -60,6 +60,7 @@ export const fr = {
   tempoDeJogo: "Temps de jeu",
   segundos: "SECONDES",
   tempoJogo: "Temps de jeu",
+  tempo: "Temps",
   
   // Popover du joueur
   selecioneJogador: "Sélectionner le joueur",
@@ -91,6 +92,10 @@ export const fr = {
   jogadorComMenosFaltas: "Joueur avec le moins de fautes",
   jogadorComMaisPosseBola: "Joueur avec le plus de possession de balle",
   historicoFaltas: "Historique des fautes",
+  mediaPorCesta: "Moyenne par panier",
+  mediaPorLance: "Moyenne par lancer",
+  mediaPorFalta: "Moyenne par faute",
+  mediaPorTempo: "Moyenne par temps",
   porTime: "Par équipe",
   posseDeBola: "Possession du ballon",
   cronologico: "Chronologique",
@@ -110,6 +115,8 @@ export const fr = {
   totalPontos: "Total des points",
   totais: "totaux",
   totalFaltas: "Total des fautes",
+  totalCestas: "Total des paniers",
+  totalLances: "Total des lancers francs",
   tempoPosseBola: "Temps de possession du ballon",
   calculoEficiencia: "Calcul de l'efficacité",
   penalidadeFaltas: "Pénalité pour fautes",
@@ -128,12 +135,33 @@ export const fr = {
   
   // Paniers
   cestas: "paniers",
+  cesta: "panier",
   lances: "lancers francs",
   posse: "Possession",
   copy: "Enregistrez vos matchs",
   
   // Notifications
-  falta: "Faute"
+  falta: "Faute",
+  
+  // Nouveaux graphiques
+  perfilJogador: "Profil du joueur",
+  pontuacao: "Score",
+  cestasLongas: "Tirs longue distance",
+  disciplina: "Discipline",
+  distribuicaoPontos: "Distribution des points",
+  evolucaoTemporal: "Évolution temporelle",
+  pontosAcumulados: "Points accumulés",
+  nenhumPontoRegistrado: "Aucun point enregistré",
+  nenhumaFaltaRegistrada: "Aucune faute enregistrée",
+  
+  // Comparaison de joueurs
+  compararCom: "Comparer avec",
+  nenhumJogador: "Aucun joueur",
+  cestas3pts: "Tirs à 3 points",
+  cestas2pts: "Tirs à 2 points",
+  lancesLivres: "Lancers francs",
+  graficoAranhaExplicacao: "Le graphique montre la performance des joueurs en pourcentage par rapport au maximum attendu dans chaque catégorie.",
+  graficoAranhaExplicacaoAbsoluto: "Le graphique montre les valeurs absolues de chaque statistique du joueur."
 };
 
 export default fr;

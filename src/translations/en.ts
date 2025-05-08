@@ -58,6 +58,7 @@ export const en = {
   tempoDeJogo: "Game Time",
   segundos: "SECONDS",
   tempoJogo: "Game Time",
+  tempo: "Time",
   
   // Player popover
   selecioneJogador: "Select player",
@@ -89,6 +90,10 @@ export const en = {
   jogadorComMenosFaltas: "Player with Fewest Fouls",
   jogadorComMaisPosseBola: "Player with Most Ball Possession",
   historicoFaltas: "Fouls History",
+  mediaPorCesta: "Average per Basket",
+  mediaPorLance: "Average per Shot",
+  mediaPorFalta: "Average per Foul",
+  mediaPorTempo: "Average per Time",
   porTime: "By Team",
   posseDeBola: "Ball Possession",
   cronologico: "Chronological",
@@ -106,6 +111,8 @@ export const en = {
   totais: "totals",
   ptsMin: "pts/min",
   totalFaltas: "Total Fouls",
+  totalCestas: "Total Baskets",
+  totalLances: "Total Shots",
   tempoPosseBola: "Possession Time",
   eficiencia: "Efficiency",
   calculoEficiencia: "Efficiency Calculation",
@@ -123,11 +130,33 @@ export const en = {
   textRemovalConfirmation: " This action cannot be undone.",
   // Baskets
   cestas: "baskets",
+  cesta: "basket",
   lances: "free throws",
   posse: "Possession",
   copy: "Record your games",
   // Notifications
-  falta: "Foul"
+  falta: "Foul",
+  
+  // New graphs
+  perfilJogador: "Player Profile",
+  pontuacao: "Scoring",
+  cestasLongas: "Long Range Shots",
+  disciplina: "Discipline",
+  distribuicaoPontos: "Points Distribution",
+  evolucaoTemporal: "Time Evolution",
+  pontosAcumulados: "Accumulated Points",
+  nenhumPontoRegistrado: "No points recorded",
+  nenhumaFaltaRegistrada: "No fouls recorded",
+  
+  
+  // Player comparison
+  compararCom: "Compare with",
+  nenhumJogador: "No player",
+  cestas3pts: "3-point Shots",
+  cestas2pts: "2-point Shots",
+  lancesLivres: "Free Throws",
+  graficoAranhaExplicacao: "The chart shows player performance as a percentage relative to the expected maximum in each category.",
+  graficoAranhaExplicacaoAbsoluto: "The chart shows the absolute values of each player's statistics."
 };
 
 export default en;

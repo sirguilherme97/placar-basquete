@@ -60,6 +60,7 @@ export const hi = {
   tempoDeJogo: "गेम का समय",
   segundos: "सेकंड",
   tempoJogo: "गेम का समय",
+  tempo: "समय",
   
   // प्लेयर पॉपओवर
   selecioneJogador: "खिलाड़ी चुनें",
@@ -91,6 +92,10 @@ export const hi = {
   jogadorComMenosFaltas: "सबसे कम फाउल वाला खिलाड़ी",
   jogadorComMaisPosseBola: "सबसे अधिक बॉल पजेशन वाला खिलाड़ी",
   historicoFaltas: "फाउल का इतिहास",
+  mediaPorCesta: "प्रति बास्केट औसत",
+  mediaPorLance: "प्रति फ्री थ्रो औसत",
+  mediaPorFalta: "प्रति फाउल औसत",
+  mediaPorTempo: "प्रति समय औसत",
   porTime: "टीम द्वारा",
   posseDeBola: "बॉल पजेशन",
   cronologico: "कालक्रमानुसार",
@@ -110,6 +115,8 @@ export const hi = {
   totalPontos: "कुल अंक",
   totais: "कुल",
   totalFaltas: "कुल फाउल",
+  totalCestas: "कुल बास्केट",
+  totalLances: "कुल फ्री थ्रो",
   tempoPosseBola: "बॉल पजेशन समय",
   calculoEficiencia: "दक्षता की गणना",
   penalidadeFaltas: "फाउल के लिए पेनल्टी",
@@ -128,12 +135,33 @@ export const hi = {
   
   // बास्केट
   cestas: "बास्केट",
+  cesta: "बास्केट",
   lances: "फ्री थ्रो",
   posse: "पजेशन",
   copy: "अपने मैच रिकॉर्ड करें",
   
   // नोटिफिकेशन्स
-  falta: "फाउल"
+  falta: "फाउल",
+  
+  // नए ग्राफ
+  perfilJogador: "खिलाड़ी का प्रोफाइल",
+  pontuacao: "स्कोरिंग",
+  cestasLongas: "लंबी दूरी के शॉट",
+  disciplina: "अनुशासन",
+  distribuicaoPontos: "अंक वितरण",
+  evolucaoTemporal: "समय अनुसार विकास",
+  pontosAcumulados: "संचित अंक",
+  nenhumPontoRegistrado: "कोई अंक दर्ज नहीं",
+  nenhumaFaltaRegistrada: "कोई फाउल दर्ज नहीं",
+  
+  // खिलाड़ियों की तुलना
+  compararCom: "इससे तुलना करें",
+  nenhumJogador: "कोई खिलाड़ी नहीं",
+  cestas3pts: "3-पॉइंट शॉट",
+  cestas2pts: "2-पॉइंट शॉट",
+  lancesLivres: "फ्री थ्रो",
+  graficoAranhaExplicacao: "ग्राफ प्रत्येक श्रेणी में अपेक्षित अधिकतम के सापेक्ष प्रतिशत में खिलाड़ियों का प्रदर्शन दिखाता है।",
+  graficoAranhaExplicacaoAbsoluto: "ग्राफ खिलाड़ी के प्रत्येक आंकड़े के पूर्ण मान दिखाता है।"
 };
 
 export default hi; 

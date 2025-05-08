@@ -17,6 +17,8 @@ export const tr = {
   banco: "Yedek Kulübesi",
   remover: "Kaldır",
   salvar: "Kaydet",
+  pontosDoTimeA: "A Takımı Puanları",
+  pontosDoTimeB: "B Takımı Puanları",
   
   // Takımlar
   timeA: "A Takımı",
@@ -58,6 +60,7 @@ export const tr = {
   tempoDeJogo: "Oyun Süresi",
   segundos: "SANİYE",
   tempoJogo: "Oyun Süresi",
+  tempo: "Süre",
   
   // Oyuncu popover
   selecioneJogador: "Oyuncu seçin",
@@ -89,6 +92,10 @@ export const tr = {
   jogadorComMaisPosseBola: "En Çok Top Sahipliği Olan Oyuncu",
   historicoPontos: "Puan Geçmişi",
   historicoFaltas: "Faul Geçmişi",
+  mediaPorCesta: "Sepet Başına Ortalama",
+  mediaPorLance: "Atış Başına Ortalama",
+  mediaPorFalta: "Faul Başına Ortalama",
+  mediaPorTempo: "Süre Başına Ortalama",
   porTime: "Takıma Göre",
   posseDeBola: "Top Sahipliği",
   cestas3pontos: "3 sayı atışları",
@@ -97,8 +104,6 @@ export const tr = {
   
   // İşlemler
   registrarFalta: "Faul Kaydet",
-  pontosDoTimeA: "A Takımı Puanları",
-  pontosDoTimeB: "B Takımı Puanları",
   selecioneTime: "Takım seçin",
   resetarTudo: "Tümünü Sıfırla",
   nenhumPontoMarcadoAinda: "Henüz puan kaydedilmedi",
@@ -110,6 +115,8 @@ export const tr = {
   totalPontos: "Toplam Puan",
   totais: "toplam",
   totalFaltas: "Toplam Faul",
+  totalCestas: "Toplam Sepet",
+  totalLances: "Toplam Atış",
   tempoPosseBola: "Top Sahipliği Süresi",
   calculoEficiencia: "Verimlilik Hesaplaması",
   penalidadeFaltas: "Faul Cezası",
@@ -128,12 +135,33 @@ export const tr = {
   
   // Sepetler
   cestas: "sepetler",
+  cesta: "sepet",
   lances: "serbest atışlar",
   posse: "Sahiplik",
   copy: "Oyunlarınızı kaydedin",
   
   // Bildirimler
-  falta: "Faul"
+  falta: "Faul",
+  
+  // Yeni grafikler
+  perfilJogador: "Oyuncu Profili",
+  pontuacao: "Puanlama",
+  cestasLongas: "Uzun Mesafe Atışları",
+  disciplina: "Disiplin",
+  distribuicaoPontos: "Puan Dağılımı",
+  evolucaoTemporal: "Zaman İçinde Gelişim",
+  pontosAcumulados: "Birikmiş Puanlar",
+  nenhumPontoRegistrado: "Kaydedilmiş puan yok",
+  nenhumaFaltaRegistrada: "Kaydedilmiş faul yok",
+  
+  // Oyuncu karşılaştırması
+  compararCom: "Karşılaştır",
+  nenhumJogador: "Oyuncu yok",
+  cestas3pts: "3 Sayı Atışları",
+  cestas2pts: "2 Sayı Atışları",
+  lancesLivres: "Serbest Atışlar",
+  graficoAranhaExplicacao: "Grafik, oyuncuların her kategorideki beklenen maksimum değere göre yüzdesel performansını gösterir.",
+  graficoAranhaExplicacaoAbsoluto: "Grafik, oyuncunun her istatistiğinin mutlak değerlerini gösterir."
 };
 
 export default tr;

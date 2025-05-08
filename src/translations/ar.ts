@@ -60,6 +60,7 @@ export const ar = {
   tempoDeJogo: "وقت اللعبة",
   segundos: "ثواني",
   tempoJogo: "وقت اللعبة",
+  tempo: "الوقت",
   
   // نافذة اللاعب
   selecioneJogador: "اختر اللاعب",
@@ -91,6 +92,10 @@ export const ar = {
   jogadorComMenosFaltas: "اللاعب مع أقل أخطاء",
   jogadorComMaisPosseBola: "اللاعب مع أكبر استحواذ على الكرة",
   historicoFaltas: "تاريخ الأخطاء",
+  mediaPorCesta: "متوسط لكل سلة",
+  mediaPorLance: "متوسط لكل رمية حرة",
+  mediaPorFalta: "متوسط لكل خطأ",
+  mediaPorTempo: "متوسط لكل وقت",
   porTime: "حسب الفريق",
   posseDeBola: "الاستحواذ على الكرة",
   cronologico: "زمني",
@@ -110,6 +115,8 @@ export const ar = {
   totalPontos: "إجمالي النقاط",
   totais: "الإجمالي",
   totalFaltas: "إجمالي الأخطاء",
+  totalCestas: "إجمالي السلات",
+  totalLances: "إجمالي الرميات الحرة",
   tempoPosseBola: "وقت الاستحواذ على الكرة",
   calculoEficiencia: "حساب الكفاءة",
   penalidadeFaltas: "غرامة الأخطاء",
@@ -128,12 +135,33 @@ export const ar = {
   
   // السلات
   cestas: "سلات",
+  cesta: "سلة",
   lances: "رميات حرة",
   posse: "استحواذ",
   copy: "سجل مبارياتك",
   
   // الإشعارات
-  falta: "خطأ"
+  falta: "خطأ",
+  
+  // الرسوم البيانية الجديدة
+  perfilJogador: "ملف اللاعب",
+  pontuacao: "التسجيل",
+  cestasLongas: "التسديدات البعيدة",
+  disciplina: "الانضباط",
+  distribuicaoPontos: "توزيع النقاط",
+  evolucaoTemporal: "التطور الزمني",
+  pontosAcumulados: "النقاط المتراكمة",
+  nenhumPontoRegistrado: "لم يتم تسجيل أي نقاط",
+  nenhumaFaltaRegistrada: "لم يتم تسجيل أي أخطاء",
+  
+  // مقارنة اللاعبين
+  compararCom: "مقارنة مع",
+  nenhumJogador: "لا يوجد لاعب",
+  cestas3pts: "رميات ثلاثية",
+  cestas2pts: "رميات ثنائية",
+  lancesLivres: "رميات حرة",
+  graficoAranhaExplicacao: "يوضح الرسم البياني أداء اللاعبين بالنسبة المئوية بالنسبة للحد الأقصى المتوقع في كل فئة.",
+  graficoAranhaExplicacaoAbsoluto: "يوضح الرسم البياني القيم المطلقة لكل إحصائية للاعب."
 };
 
 export default ar;

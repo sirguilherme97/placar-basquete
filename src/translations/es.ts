@@ -60,6 +60,7 @@ export const es = {
   tempoDeJogo: "Tiempo de Juego",
   segundos: "SEGUNDOS",
   tempoJogo: "Tiempo de Juego",
+  tempo: "Tiempo",
   
   // Popover jugador
   selecioneJogador: "Seleccionar jugador",
@@ -91,6 +92,10 @@ export const es = {
   jogadorComMenosFaltas: "Jugador con Menos Faltas",
   jogadorComMaisPosseBola: "Jugador con Más Posesión de Balón",
   historicoFaltas: "Historial de Faltas",
+  mediaPorCesta: "Promedio por Canasta",
+  mediaPorLance: "Promedio por Tiro",
+  mediaPorFalta: "Promedio por Falta",
+  mediaPorTempo: "Promedio por Tiempo",
   porTime: "Por Equipo",
   posseDeBola: "Posesión de Balón",
   cronologico: "Cronológico",
@@ -110,6 +115,8 @@ export const es = {
   totalPontos: "Total de Puntos",
   totais: "totales",
   totalFaltas: "Total de Faltas",
+  totalCestas: "Total de Canastas",
+  totalLances: "Total de Tiros Libres",
   tempoPosseBola: "Tiempo de Posesión",
   calculoEficiencia: "Cálculo de Eficiencia",
   penalidadeFaltas: "Penalización por Faltas",
@@ -128,11 +135,32 @@ export const es = {
   
   // Canastas
   cestas: "canastas",
+  cesta: "canasta",
   lances: "tiros libres",
   posse: "Posesión",
   copy: "Registre sus partidos",
   // Notificaciones
-  falta: "Falta"
+  falta: "Falta",
+  
+  // Nuevos gráficos
+  perfilJogador: "Perfil del Jugador",
+  pontuacao: "Puntuación",
+  cestasLongas: "Tiros de Larga Distancia",
+  disciplina: "Disciplina",
+  distribuicaoPontos: "Distribución de Puntos",
+  evolucaoTemporal: "Evolución Temporal",
+  pontosAcumulados: "Puntos Acumulados",
+  nenhumPontoRegistrado: "No hay puntos registrados",
+  nenhumaFaltaRegistrada: "No hay faltas registradas",
+  
+  // Comparación de jugadores
+  compararCom: "Comparar con",
+  nenhumJogador: "Ningún jugador",
+  cestas3pts: "Tiros de 3 puntos",
+  cestas2pts: "Tiros de 2 puntos",
+  lancesLivres: "Tiros Libres",
+  graficoAranhaExplicacao: "El gráfico muestra el rendimiento de los jugadores en porcentaje relativo al máximo esperado en cada categoría.",
+  graficoAranhaExplicacaoAbsoluto: "El gráfico muestra los valores absolutos de cada estadística del jugador."
 };
 
 export default es; 

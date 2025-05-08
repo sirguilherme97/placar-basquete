@@ -60,6 +60,7 @@ export const it = {
   tempoDeJogo: "Tempo di gioco",
   segundos: "SECONDI",
   tempoJogo: "Tempo di gioco",
+  tempo: "Tempo",
   
   // Popover giocatore
   selecioneJogador: "Seleziona giocatore",
@@ -91,6 +92,10 @@ export const it = {
   jogadorComMenosFaltas: "Giocatore con meno falli",
   jogadorComMaisPosseBola: "Giocatore con più possesso palla",
   historicoFaltas: "Cronologia falli",
+  mediaPorCesta: "Media per canestro",
+  mediaPorLance: "Media per tiro",
+  mediaPorFalta: "Media per fallo",
+  mediaPorTempo: "Media per tempo",
   porTime: "Per squadra",
   posseDeBola: "Possesso palla",
   cronologico: "Cronologico",
@@ -110,6 +115,8 @@ export const it = {
   totalPontos: "Punti totali",
   totais: "totali",
   totalFaltas: "Falli totali",
+  totalCestas: "Canestri totali",
+  totalLances: "Tiri liberi totali",
   tempoPosseBola: "Tempo di possesso palla",
   calculoEficiencia: "Calcolo dell'efficienza",
   penalidadeFaltas: "Penalità per falli",
@@ -128,12 +135,33 @@ export const it = {
   
   // Canestri
   cestas: "canestri",
+  cesta: "canestro",
   lances: "tiri liberi",
   posse: "Possesso",
   copy: "Registra le tue partite",
   
   // Notifiche
-  falta: "Fallo"
+  falta: "Fallo",
+  
+  // Nuovi grafici
+  perfilJogador: "Profilo giocatore",
+  pontuacao: "Punteggio",
+  cestasLongas: "Tiri da lontano",
+  disciplina: "Disciplina",
+  distribuicaoPontos: "Distribuzione punti",
+  evolucaoTemporal: "Evoluzione temporale",
+  pontosAcumulados: "Punti accumulati",
+  nenhumPontoRegistrado: "Nessun punto registrato",
+  nenhumaFaltaRegistrada: "Nessun fallo registrato",
+  
+  // Confronto giocatori
+  compararCom: "Confronta con",
+  nenhumJogador: "Nessun giocatore",
+  cestas3pts: "Tiri da 3 punti",
+  cestas2pts: "Tiri da 2 punti",
+  lancesLivres: "Tiri liberi",
+  graficoAranhaExplicacao: "Il grafico mostra le prestazioni dei giocatori in percentuale rispetto al massimo previsto in ogni categoria.",
+  graficoAranhaExplicacaoAbsoluto: "Il grafico mostra i valori assoluti di ogni statistica del giocatore."
 };
 
 export default it;

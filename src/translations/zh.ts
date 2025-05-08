@@ -60,6 +60,7 @@ export const zh = {
   tempoDeJogo: "比赛时间",
   segundos: "秒",
   tempoJogo: "比赛时间",
+  tempo: "时间",
   
   // 球员弹窗
   selecioneJogador: "选择球员",
@@ -91,6 +92,10 @@ export const zh = {
   jogadorComMenosFaltas: "犯规最少的球员",
   jogadorComMaisPosseBola: "控球时间最长的球员",
   historicoFaltas: "犯规历史",
+  mediaPorCesta: "每球平均",
+  mediaPorLance: "每次投篮平均",
+  mediaPorFalta: "每次犯规平均",
+  mediaPorTempo: "每分钟平均",
   porTime: "按球队",
   posseDeBola: "球权",
   cronologico: "时间顺序",
@@ -110,6 +115,8 @@ export const zh = {
   totalPontos: "总得分",
   totais: "总计",
   totalFaltas: "总犯规",
+  totalCestas: "总投篮",
+  totalLances: "总罚球",
   tempoPosseBola: "控球时间",
   calculoEficiencia: "效率计算",
   penalidadeFaltas: "犯规惩罚",
@@ -128,12 +135,33 @@ export const zh = {
   
   // 篮筐
   cestas: "投篮",
+  cesta: "投篮",
   lances: "罚球",
   posse: "控球",
   copy: "记录您的比赛",
   
   // 通知
-  falta: "犯规"
+  falta: "犯规",
+  
+  // 新图表
+  perfilJogador: "球员档案",
+  pontuacao: "得分",
+  cestasLongas: "远投",
+  disciplina: "纪律性",
+  distribuicaoPontos: "得分分布",
+  evolucaoTemporal: "时间演变",
+  pontosAcumulados: "累计得分",
+  nenhumPontoRegistrado: "没有记录的得分",
+  nenhumaFaltaRegistrada: "没有记录的犯规",
+  
+  // 球员比较
+  compararCom: "与...比较",
+  nenhumJogador: "无球员",
+  cestas3pts: "三分球",
+  cestas2pts: "两分球",
+  lancesLivres: "罚球",
+  graficoAranhaExplicacao: "图表显示球员在每个类别中相对于预期最大值的百分比表现。",
+  graficoAranhaExplicacaoAbsoluto: "图表显示球员每项统计数据的绝对值。"
 };
 
 export default zh;

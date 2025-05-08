@@ -17,6 +17,8 @@ export const pl = {
   banco: "Ławka Rezerwowych",
   remover: "Usuń",
   salvar: "Zapisz",
+  pontosDoTimeA: "Punkty Drużyny A",
+  pontosDoTimeB: "Punkty Drużyny B",
   
   // Drużyny
   timeA: "Drużyna A",
@@ -58,6 +60,7 @@ export const pl = {
   tempoDeJogo: "Czas Gry",
   segundos: "SEKUNDY",
   tempoJogo: "Czas Gry",
+  tempo: "Czas",
   
   // Popover zawodnika
   selecioneJogador: "Wybierz zawodnika",
@@ -89,6 +92,10 @@ export const pl = {
   jogadorComMaisPosseBola: "Zawodnik z Najdłuższym Posiadaniem",
   historicoPontos: "Historia Punktów",
   historicoFaltas: "Historia Fauli",
+  mediaPorCesta: "Średnia na Kosz",
+  mediaPorLance: "Średnia na Rzut",
+  mediaPorFalta: "Średnia na Faul",
+  mediaPorTempo: "Średnia na Czas",
   porTime: "Według Drużyny",
   posseDeBola: "Posiadanie Piłki",
   cestas3pontos: "rzuty za 3 punkty",
@@ -97,8 +104,6 @@ export const pl = {
   
   // Akcje
   registrarFalta: "Zapisz Faul",
-  pontosDoTimeA: "Punkty Drużyny A",
-  pontosDoTimeB: "Punkty Drużyny B",
   selecioneTime: "Wybierz drużynę",
   resetarTudo: "Zresetuj Wszystko",
   nenhumPontoMarcadoAinda: "Nie zdobyto jeszcze punktów",
@@ -110,6 +115,8 @@ export const pl = {
   totalPontos: "Suma Punktów",
   totais: "suma",
   totalFaltas: "Suma Fauli",
+  totalCestas: "Suma Koszy",
+  totalLances: "Suma Rzutów",
   tempoPosseBola: "Czas Posiadania Piłki",
   calculoEficiencia: "Obliczanie Wydajności",
   penalidadeFaltas: "Kara za Faule",
@@ -128,12 +135,33 @@ export const pl = {
   
   // Kosze
   cestas: "kosze",
+  cesta: "kosz",
   lances: "rzuty wolne",
   posse: "Posiadanie",
   copy: "Zapisuj swoje gry",
   
   // Powiadomienia
-  falta: "Faul"
+  falta: "Faul",
+  
+  // Nowe wykresy
+  perfilJogador: "Profil Zawodnika",
+  pontuacao: "Punktacja",
+  cestasLongas: "Rzuty z Dystansu",
+  disciplina: "Dyscyplina",
+  distribuicaoPontos: "Rozkład Punktów",
+  evolucaoTemporal: "Ewolucja w Czasie",
+  pontosAcumulados: "Punkty Zgromadzone",
+  nenhumPontoRegistrado: "Brak zarejestrowanych punktów",
+  nenhumaFaltaRegistrada: "Brak zarejestrowanych fauli",
+  
+  // Porównanie zawodników
+  compararCom: "Porównaj z",
+  nenhumJogador: "Brak zawodnika",
+  cestas3pts: "Rzuty za 3 punkty",
+  cestas2pts: "Rzuty za 2 punkty",
+  lancesLivres: "Rzuty Wolne",
+  graficoAranhaExplicacao: "Wykres pokazuje wydajność zawodników jako procent w stosunku do oczekiwanego maksimum w każdej kategorii.",
+  graficoAranhaExplicacaoAbsoluto: "Wykres pokazuje wartości bezwzględne każdej statystyki zawodnika."
 };
 
 export default pl;

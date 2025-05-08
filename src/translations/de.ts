@@ -60,6 +60,7 @@ export const de = {
   tempoDeJogo: "Spielzeit",
   segundos: "SEKUNDEN",
   tempoJogo: "Spielzeit",
+  tempo: "Zeit",
   
   // Spieler-Popover
   selecioneJogador: "Spieler auswählen",
@@ -91,6 +92,10 @@ export const de = {
   jogadorComMenosFaltas: "Spieler mit den wenigsten Fouls",
   jogadorComMaisPosseBola: "Spieler mit dem meisten Ballbesitz",
   historicoFaltas: "Foulverlauf",
+  mediaPorCesta: "Durchschnitt pro Korb",
+  mediaPorLance: "Durchschnitt pro Wurf",
+  mediaPorFalta: "Durchschnitt pro Foul", 
+  mediaPorTempo: "Durchschnitt pro Zeit",
   porTime: "Nach Team",
   posseDeBola: "Ballbesitz",
   cronologico: "Chronologisch",
@@ -110,6 +115,8 @@ export const de = {
   totalPontos: "Gesamtpunkte",
   totais: "gesamt",
   totalFaltas: "Gesamtfouls",
+  totalCestas: "Gesamtkörbe",
+  totalLances: "Gesamtwürfe",
   tempoPosseBola: "Ballbesitzzeit",
   calculoEficiencia: "Effizienzberechnung",
   penalidadeFaltas: "Foulstrafe",
@@ -128,12 +135,33 @@ export const de = {
   
   // Körbe
   cestas: "Körbe",
+  cesta: "Korb",
   lances: "Freiwürfe",
   posse: "Ballbesitz",
   copy: "Zeichnen Sie Ihre Spiele auf",
   
   // Benachrichtigungen
-  falta: "Foul"
+  falta: "Foul",
+  
+  // Neue Diagramme
+  perfilJogador: "Spielerprofil",
+  pontuacao: "Punktestand",
+  cestasLongas: "Distanzwürfe",
+  disciplina: "Disziplin",
+  distribuicaoPontos: "Punkteverteilung",
+  evolucaoTemporal: "Zeitliche Entwicklung",
+  pontosAcumulados: "Gesammelte Punkte",
+  nenhumPontoRegistrado: "Keine Punkte registriert",
+  nenhumaFaltaRegistrada: "Keine Fouls registriert",
+  
+  // Spielervergleich
+  compararCom: "Vergleichen mit",
+  nenhumJogador: "Kein Spieler",
+  cestas3pts: "3-Punkte-Würfe",
+  cestas2pts: "2-Punkte-Würfe",
+  lancesLivres: "Freiwürfe",
+  graficoAranhaExplicacao: "Das Diagramm zeigt die Leistung der Spieler in Prozent relativ zum erwarteten Maximum in jeder Kategorie.",
+  graficoAranhaExplicacaoAbsoluto: "Das Diagramm zeigt die absoluten Werte jeder Spielerstatistik."
 };
 
 export default de;

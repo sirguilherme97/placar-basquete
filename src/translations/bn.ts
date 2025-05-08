@@ -60,6 +60,7 @@ export const bn = {
   tempoDeJogo: "গেম সময়",
   segundos: "সেকেন্ড",
   tempoJogo: "গেম সময়",
+  tempo: "সময়",
   
   // খেলোয়াড় পপওভার
   selecioneJogador: "খেলোয়াড় নির্বাচন করুন",
@@ -91,6 +92,10 @@ export const bn = {
   jogadorComMenosFaltas: "সবচেয়ে কম ফাউল করা খেলোয়াড়",
   jogadorComMaisPosseBola: "সবচেয়ে বেশি বল পজেশন থাকা খেলোয়াড়",
   historicoFaltas: "ফাউল ইতিহাস",
+  mediaPorCesta: "প্রতি বাস্কেট গড়",
+  mediaPorLance: "প্রতি ফ্রি থ্রো গড়",
+  mediaPorFalta: "প্রতি ফাউল গড়",
+  mediaPorTempo: "প্রতি সময় গড়",
   porTime: "টিম অনুসারে",
   posseDeBola: "বল পজেশন",
   cronologico: "কালানুক্রমিক",
@@ -110,6 +115,8 @@ export const bn = {
   totalPontos: "মোট পয়েন্ট",
   totais: "মোট",
   totalFaltas: "মোট ফাউল",
+  totalCestas: "মোট বাস্কেট",
+  totalLances: "মোট ফ্রি থ্রো",
   tempoPosseBola: "বল পজেশন সময়",
   calculoEficiencia: "দক্ষতা গণনা",
   penalidadeFaltas: "ফাউল জরিমানা",
@@ -128,12 +135,33 @@ export const bn = {
   
   // বাস্কেট
   cestas: "বাস্কেট",
+  cesta: "বাস্কেট",
   lances: "ফ্রি থ্রো",
   posse: "পজেশন",
   copy: "আপনার ম্যাচগুলি রেকর্ড করুন",
   
   // বিজ্ঞপ্তি
-  falta: "ফাউল"
+  falta: "ফাউল",
+  
+  // নতুন গ্রাফ
+  perfilJogador: "খেলোয়াড়ের প্রোফাইল",
+  pontuacao: "স্কোরিং",
+  cestasLongas: "দূরের শট",
+  disciplina: "শৃঙ্খলা",
+  distribuicaoPontos: "পয়েন্ট বিতরণ",
+  evolucaoTemporal: "সময়ের সাথে বিকাশ",
+  pontosAcumulados: "সঞ্চিত পয়েন্ট",
+  nenhumPontoRegistrado: "কোনো পয়েন্ট রেকর্ড করা হয়নি",
+  nenhumaFaltaRegistrada: "কোনো ফাউল রেকর্ড করা হয়নি",
+  
+  // খেলোয়াড় তুলনা
+  compararCom: "এর সাথে তুলনা করুন",
+  nenhumJogador: "কোনো খেলোয়াড় নেই",
+  cestas3pts: "৩-পয়েন্ট শট",
+  cestas2pts: "২-পয়েন্ট শট",
+  lancesLivres: "ফ্রি থ্রো",
+  graficoAranhaExplicacao: "গ্রাফটি প্রতিটি বিভাগে প্রত্যাশিত সর্বাধিক মানের তুলনায় শতাংশে খেলোয়াড়দের পারফরম্যান্স দেখায়।",
+  graficoAranhaExplicacaoAbsoluto: "গ্রাফটি খেলোয়াড়ের প্রতিটি পরিসংখ্যানের সম্পূর্ণ মান দেখায়।"
 };
 
 export default bn;

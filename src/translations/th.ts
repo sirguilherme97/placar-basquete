@@ -17,6 +17,8 @@ export const th = {
   banco: "ม้านั่งสำรอง",
   remover: "ลบ",
   salvar: "บันทึก",
+  pontosDoTimeA: "คะแนนทีม A",
+  pontosDoTimeB: "คะแนนทีม B",
   
   // ทีม
   timeA: "ทีม A",
@@ -58,6 +60,7 @@ export const th = {
   tempoDeJogo: "เวลาการเล่น",
   segundos: "วินาที",
   tempoJogo: "เวลาการเล่น",
+  tempo: "เวลา",
   
   // ป๊อปโอเวอร์ผู้เล่น
   selecioneJogador: "เลือกผู้เล่น",
@@ -89,6 +92,10 @@ export const th = {
   jogadorComMaisPosseBola: "ผู้เล่นที่ครองบอลมากที่สุด",
   historicoPontos: "ประวัติคะแนน",
   historicoFaltas: "ประวัติฟาวล์",
+  mediaPorCesta: "ค่าเฉลี่ยต่อตะกร้า",
+  mediaPorLance: "ค่าเฉลี่ยต่อการปา",
+  mediaPorFalta: "ค่าเฉลี่ยต่อฟาวล์",
+  mediaPorTempo: "ค่าเฉลี่ยต่อเวลา",
   porTime: "ตามทีม",
   posseDeBola: "การครองบอล",
   cestas3pontos: "ลูก 3 แต้ม",
@@ -97,8 +104,6 @@ export const th = {
   
   // การกระทำ
   registrarFalta: "บันทึกฟาวล์",
-  pontosDoTimeA: "คะแนนทีม A",
-  pontosDoTimeB: "คะแนนทีม B",
   selecioneTime: "เลือกทีม",
   resetarTudo: "รีเซ็ตทั้งหมด",
   nenhumPontoMarcadoAinda: "ยังไม่มีคะแนน",
@@ -110,6 +115,8 @@ export const th = {
   totalPontos: "คะแนนรวม",
   totais: "รวม",
   totalFaltas: "ฟาวล์รวม",
+  totalCestas: "ตะกร้ารวม",
+  totalLances: "การปารวม",
   tempoPosseBola: "เวลาครองบอล",
   calculoEficiencia: "การคำนวณประสิทธิภาพ",
   penalidadeFaltas: "บทลงโทษสำหรับฟาวล์",
@@ -128,12 +135,33 @@ export const th = {
   
   // ตะกร้า
   cestas: "ตะกร้า",
+  cesta: "ตะกร้า",
   lances: "การปาลูกโทษ",
   posse: "ครองบอล",
   copy: "บันทึกเกมของคุณ",
   
   // การแจ้งเตือน
-  falta: "ฟาวล์"
+  falta: "ฟาวล์",
+  
+  // กราฟใหม่
+  perfilJogador: "โปรไฟล์ผู้เล่น",
+  pontuacao: "การทำคะแนน",
+  cestasLongas: "การยิงไกล",
+  disciplina: "วินัย",
+  distribuicaoPontos: "การกระจายคะแนน",
+  evolucaoTemporal: "วิวัฒนาการตามเวลา",
+  pontosAcumulados: "คะแนนสะสม",
+  nenhumPontoRegistrado: "ไม่มีคะแนนที่บันทึกไว้",
+  nenhumaFaltaRegistrada: "ไม่มีฟาวล์ที่บันทึกไว้",
+  
+  // การเปรียบเทียบผู้เล่น
+  compararCom: "เปรียบเทียบกับ",
+  nenhumJogador: "ไม่มีผู้เล่น",
+  cestas3pts: "ยิง 3 แต้ม",
+  cestas2pts: "ยิง 2 แต้ม",
+  lancesLivres: "การปาลูกโทษ",
+  graficoAranhaExplicacao: "กราฟแสดงประสิทธิภาพของผู้เล่นเป็นเปอร์เซ็นต์เทียบกับค่าสูงสุดที่คาดหวังในแต่ละหมวดหมู่",
+  graficoAranhaExplicacaoAbsoluto: "กราฟแสดงค่าสัมบูรณ์ของสถิติแต่ละตัวของผู้เล่น"
 };
 
 export default th;

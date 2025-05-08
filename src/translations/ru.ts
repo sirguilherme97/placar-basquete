@@ -60,6 +60,7 @@ export const ru = {
   tempoDeJogo: "Игровое время",
   segundos: "СЕКУНДЫ",
   tempoJogo: "Игровое время",
+  tempo: "Время",
   
   // Всплывающее окно игрока
   selecioneJogador: "Выбрать игрока",
@@ -91,6 +92,10 @@ export const ru = {
   jogadorComMenosFaltas: "Игрок с наименьшим количеством фолов",
   jogadorComMaisPosseBola: "Игрок с наибольшим владением мячом",
   historicoFaltas: "История фолов",
+  mediaPorCesta: "Среднее за корзину",
+  mediaPorLance: "Среднее за бросок",
+  mediaPorFalta: "Среднее за фол",
+  mediaPorTempo: "Среднее за время",
   porTime: "По команде",
   posseDeBola: "Владение мячом",
   cronologico: "Хронологически",
@@ -110,6 +115,8 @@ export const ru = {
   totalPontos: "Всего очков",
   totais: "всего",
   totalFaltas: "Всего фолов",
+  totalCestas: "Всего корзин",
+  totalLances: "Всего бросков",
   tempoPosseBola: "Время владения мячом",
   calculoEficiencia: "Расчет эффективности",
   penalidadeFaltas: "Штраф за фолы",
@@ -128,12 +135,33 @@ export const ru = {
   
   // Корзины
   cestas: "корзины",
+  cesta: "корзина",
   lances: "штрафные броски",
   posse: "Владение",
   copy: "Записывайте свои игры",
   
   // Уведомления
-  falta: "Фол"
+  falta: "Фол",
+  
+  // Новые графики
+  perfilJogador: "Профиль игрока",
+  pontuacao: "Счет",
+  cestasLongas: "Дальние броски",
+  disciplina: "Дисциплина",
+  distribuicaoPontos: "Распределение очков",
+  evolucaoTemporal: "Временная эволюция",
+  pontosAcumulados: "Накопленные очки",
+  nenhumPontoRegistrado: "Очки не зарегистрированы",
+  nenhumaFaltaRegistrada: "Фолы не зарегистрированы",
+  
+  // Сравнение игроков
+  compararCom: "Сравнить с",
+  nenhumJogador: "Нет игрока",
+  cestas3pts: "Трехочковые броски",
+  cestas2pts: "Двухочковые броски",
+  lancesLivres: "Штрафные броски",
+  graficoAranhaExplicacao: "График показывает производительность игроков в процентах относительно ожидаемого максимума в каждой категории.",
+  graficoAranhaExplicacaoAbsoluto: "График показывает абсолютные значения каждой статистики игрока."
 };
 
 export default ru;

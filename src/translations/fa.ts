@@ -58,6 +58,7 @@ export const fa = {
   tempoDeJogo: "زمان بازی",
   segundos: "ثانیه",
   tempoJogo: "زمان بازی",
+  tempo: "زمان",
   
   // پاپ‌آور بازیکن
   selecioneJogador: "بازیکن را انتخاب کنید",
@@ -89,6 +90,10 @@ export const fa = {
   jogadorComMaisPosseBola: "بازیکن با بیشترین مالکیت توپ",
   historicoPontos: "تاریخچه امتیازات",
   historicoFaltas: "تاریخچه خطاها",
+  mediaPorCesta: "میانگین هر سبد",
+  mediaPorLance: "میانگین هر پرتاب آزاد",
+  mediaPorFalta: "میانگین هر خطا",
+  mediaPorTempo: "میانگین هر زمان",
   porTime: "بر اساس تیم",
   posseDeBola: "مالکیت توپ",
   cestas3pontos: "پرتاب 3 امتیازی",
@@ -110,6 +115,8 @@ export const fa = {
   totalPontos: "مجموع امتیازات",
   totais: "مجموع",
   totalFaltas: "مجموع خطاها",
+  totalCestas: "مجموع سبدها",
+  totalLances: "مجموع پرتاب‌های آزاد",
   tempoPosseBola: "زمان مالکیت توپ",
   calculoEficiencia: "محاسبه کارایی",
   penalidadeFaltas: "جریمه خطاها",
@@ -128,12 +135,33 @@ export const fa = {
   
   // سبدها
   cestas: "سبدها",
+  cesta: "سبد",
   lances: "پرتاب‌های آزاد",
   posse: "مالکیت",
   copy: "بازی‌های خود را ثبت کنید",
   
   // اعلان‌ها
-  falta: "خطا"
+  falta: "خطا",
+  
+  // نمودارهای جدید
+  perfilJogador: "پروفایل بازیکن",
+  pontuacao: "امتیازدهی",
+  cestasLongas: "پرتاب‌های دور",
+  disciplina: "انضباط",
+  distribuicaoPontos: "توزیع امتیازات",
+  evolucaoTemporal: "سیر تکاملی زمانی",
+  pontosAcumulados: "امتیازات تجمعی",
+  nenhumPontoRegistrado: "هیچ امتیازی ثبت نشده است",
+  nenhumaFaltaRegistrada: "هیچ خطایی ثبت نشده است",
+  
+  // مقایسه بازیکنان
+  compararCom: "مقایسه با",
+  nenhumJogador: "بدون بازیکن",
+  cestas3pts: "پرتاب‌های 3 امتیازی",
+  cestas2pts: "پرتاب‌های 2 امتیازی",
+  lancesLivres: "پرتاب‌های آزاد",
+  graficoAranhaExplicacao: "نمودار عملکرد بازیکنان را به صورت درصدی نسبت به حداکثر مورد انتظار در هر دسته نشان می‌دهد.",
+  graficoAranhaExplicacaoAbsoluto: "نمودار مقادیر مطلق هر آمار بازیکن را نشان می‌دهد."
 };
 
 export default fa;

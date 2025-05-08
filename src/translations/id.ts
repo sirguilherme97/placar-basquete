@@ -17,6 +17,8 @@ export const id = {
   banco: "Bangku Cadangan",
   remover: "Hapus",
   salvar: "Simpan",
+  pontosDoTimeA: "Poin Tim A",
+  pontosDoTimeB: "Poin Tim B",
   
   // Tim
   timeA: "Tim A",
@@ -58,6 +60,7 @@ export const id = {
   tempoDeJogo: "Waktu Pertandingan",
   segundos: "DETIK",
   tempoJogo: "Waktu Pertandingan",
+  tempo: "Waktu",
   
   // Popover pemain
   selecioneJogador: "Pilih pemain",
@@ -89,6 +92,10 @@ export const id = {
   jogadorComMaisPosseBola: "Pemain dengan Kepemilikan Bola Terbanyak",
   historicoPontos: "Riwayat Poin",
   historicoFaltas: "Riwayat Pelanggaran",
+  mediaPorCesta: "Rata-rata per Keranjang",
+  mediaPorLance: "Rata-rata per Lemparan",
+  mediaPorFalta: "Rata-rata per Pelanggaran",
+  mediaPorTempo: "Rata-rata per Waktu",
   porTime: "Berdasarkan Tim",
   posseDeBola: "Kepemilikan Bola",
   cestas3pontos: "tembakan 3 poin",
@@ -97,8 +104,6 @@ export const id = {
   
   // Tindakan
   registrarFalta: "Catat Pelanggaran",
-  pontosDoTimeA: "Poin Tim A",
-  pontosDoTimeB: "Poin Tim B",
   selecioneTime: "Pilih tim",
   resetarTudo: "Reset Semua",
   nenhumPontoMarcadoAinda: "Belum ada poin yang dicetak",
@@ -110,6 +115,8 @@ export const id = {
   totalPontos: "Total Poin",
   totais: "total",
   totalFaltas: "Total Pelanggaran",
+  totalCestas: "Total Keranjang",
+  totalLances: "Total Lemparan",
   tempoPosseBola: "Waktu Kepemilikan Bola",
   calculoEficiencia: "Penghitungan Efisiensi",
   penalidadeFaltas: "Penalti Pelanggaran",
@@ -128,12 +135,33 @@ export const id = {
   
   // Keranjang
   cestas: "keranjang",
+  cesta: "keranjang",
   lances: "lemparan bebas",
   posse: "Kepemilikan",
   copy: "Catat permainan Anda",
   
   // Notifikasi
-  falta: "Pelanggaran"
+  falta: "Pelanggaran",
+  
+  // Grafik Baru
+  perfilJogador: "Profil Pemain",
+  pontuacao: "Pencetak Angka",
+  cestasLongas: "Tembakan Jarak Jauh",
+  disciplina: "Disiplin",
+  distribuicaoPontos: "Distribusi Poin",
+  evolucaoTemporal: "Evolusi Waktu",
+  pontosAcumulados: "Poin Terakumulasi",
+  nenhumPontoRegistrado: "Tidak ada poin yang tercatat",
+  nenhumaFaltaRegistrada: "Tidak ada pelanggaran yang tercatat",
+  
+  // Perbandingan Pemain
+  compararCom: "Bandingkan dengan",
+  nenhumJogador: "Tidak ada pemain",
+  cestas3pts: "Tembakan 3 poin",
+  cestas2pts: "Tembakan 2 poin",
+  lancesLivres: "Lemparan Bebas",
+  graficoAranhaExplicacao: "Grafik menunjukkan performa pemain dalam persentase relatif terhadap nilai maksimum yang diharapkan di setiap kategori.",
+  graficoAranhaExplicacaoAbsoluto: "Grafik menunjukkan nilai absolut dari setiap statistik pemain."
 };
 
 export default id;

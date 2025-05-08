@@ -60,6 +60,7 @@ export const he = {
   tempoDeJogo: "זמן משחק",
   segundos: "שניות",
   tempoJogo: "זמן משחק",
+  tempo: "זמן",
   
   // פופאובר שחקן
   selecioneJogador: "בחר שחקן",
@@ -91,6 +92,10 @@ export const he = {
   jogadorComMenosFaltas: "שחקן עם הכי פחות עבירות",
   jogadorComMaisPosseBola: "שחקן עם הכי הרבה החזקות כדור",
   historicoFaltas: "היסטוריית עבירות",
+  mediaPorCesta: "ממוצע לסל",
+  mediaPorLance: "ממוצע לזריקת עונשין",
+  mediaPorFalta: "ממוצע לעבירה",
+  mediaPorTempo: "ממוצע לזמן",
   porTime: "לפי קבוצה",
   posseDeBola: "החזקת כדור",
   cronologico: "כרונולוגי",
@@ -110,6 +115,8 @@ export const he = {
   totalPontos: "סך נקודות",
   totais: "סה\"כ",
   totalFaltas: "סך עבירות",
+  totalCestas: "סך סלים",
+  totalLances: "סך זריקות עונשין",
   tempoPosseBola: "זמן החזקת כדור",
   calculoEficiencia: "חישוב יעילות",
   penalidadeFaltas: "עונש עבירות",
@@ -128,12 +135,33 @@ export const he = {
   
   // סלים
   cestas: "סלים",
+  cesta: "סל",
   lances: "זריקות עונשין",
   posse: "החזקה",
   copy: "רשום את המשחקים שלך",
   
   // התראות
-  falta: "עבירה"
+  falta: "עבירה",
+  
+  // גרפים חדשים
+  perfilJogador: "פרופיל שחקן",
+  pontuacao: "ניקוד",
+  cestasLongas: "זריקות מרחוק",
+  disciplina: "משמעת",
+  distribuicaoPontos: "חלוקת נקודות",
+  evolucaoTemporal: "התפתחות לאורך זמן",
+  pontosAcumulados: "נקודות מצטברות",
+  nenhumPontoRegistrado: "לא נרשמו נקודות",
+  nenhumaFaltaRegistrada: "לא נרשמו עבירות",
+  
+  // השוואת שחקנים
+  compararCom: "השווה עם",
+  nenhumJogador: "אין שחקן",
+  cestas3pts: "זריקות 3 נקודות",
+  cestas2pts: "זריקות 2 נקודות",
+  lancesLivres: "זריקות עונשין",
+  graficoAranhaExplicacao: "הגרף מציג את ביצועי השחקנים באחוזים יחסית למקסימום הצפוי בכל קטגוריה.",
+  graficoAranhaExplicacaoAbsoluto: "הגרף מציג את הערכים המוחלטים של כל סטטיסטיקה של השחקן."
 };
 
 export default he;

@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     "बास्केटबॉल स्कोर ट्रैकर"
   ],
   openGraph: {
-    title: "Basketball Scorer",
+    title: "Basketball Scoreboard",
     description: "Record your basketball games effortlessly! Basketball Scorer lets you manage your players, record scores, and track results and stats in real time on any device.",
     url: "/",
     siteName: "Basketball Scorer - Record your basketball games",
@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Basketball Scorer",
+    title: "Basketball Scoreboard",
   },
   viewport: {
     width: "device-width",

@@ -58,7 +58,7 @@ export default function Footer() {
         </div>
         
         <div className="flex flex-col items-center justify-center space-y-4 mb-4 text-center mt-4 text-xs text-gray-400">
-          <span className="font-normal text-xs">© {new Date().getFullYear()} Basketball Scorer - {translations.copy}</span>
+          <span className="font-normal text-xs">© {new Date().getFullYear()} Basketball Scoreboard - {translations.copy}</span>
           <span className="font-bold">v{APP_VERSION}</span>
         </div>
       </footer>

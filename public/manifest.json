@@ -1,6 +1,6 @@
 {
-  "name": "Basketball Scorer",
-  "short_name": "Basketball Scorer",
+  "name": "Basketball Scoreboard",
+  "short_name": "Basketball Scoreboard",
   "description": "Record your basketball games",
   "start_url": "/",
   "display": "standalone",

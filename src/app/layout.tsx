@@ -7,9 +7,9 @@ import { Analytics } from "@vercel/analytics/react";
 import { DirProvider } from "./context/DirContext";
 
 export const metadata: Metadata = {
-  title: "Basketball Scorer",
+  title: "Basketball Scoreboard",
   metadataBase: new URL(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"),
-  description: "Record your basketball games effortlessly! Basketball Scorer lets you manage your players, record scores, and track results and stats in real time on any device.",
+  description: "Record your basketball games effortlessly! Basketball Scoreboard lets you manage your players, record scores, and track results and stats in real time on any device.",
   keywords: [
     // 🇧🇷 Português
     "Placar de Basquete",
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     "Registrar partidas de basquete",
 
     // 🇺🇸 English
-    "Basketball Scorer",
+    "Basketball Scoreboard",
     "Basketball Score Tracker",
     "Basketball Score App",
     "Team Scoreboard",
@@ -52,9 +52,9 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "Basketball Scoreboard",
-    description: "Record your basketball games effortlessly! Basketball Scorer lets you manage your players, record scores, and track results and stats in real time on any device.",
+    description: "Record your basketball games effortlessly! Basketball Scoreboard lets you manage your players, record scores, and track results and stats in real time on any device.",
     url: "/",
-    siteName: "Basketball Scorer - Record your basketball games",
+    siteName: "Basketball Scoreboard - Record your basketball games",
     type: "website",
   },
   manifest: "/manifest.json",
